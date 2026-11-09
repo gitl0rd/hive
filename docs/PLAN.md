@@ -40,7 +40,8 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 - Tests: `jest-expo` + `@testing-library/react-native`.
 - Targets: Android (owner's phone), web (desktop + quick previews). iOS should work but isn't a priority.
 - **Android delivery:** EAS Build, `preview` profile → standalone APK (`eas.json` in repo; owner runs `eas build -p android --profile preview`).
-- **Web delivery:** `npx expo export -p web` → GitHub Pages, deployed by a GitHub Action on push to `main` (set `experiments.baseUrl` to the repo path). Static only; the browser calls `api.todoist.com` directly.
+- **Web delivery:** `npx expo export -p web` → GitHub Pages, deployed by a GitHub Action on push to `main` (`EXPO_BASE_URL=/hive` → `experiments.baseUrl` via `app.config.ts`). Static only; the browser calls `api.todoist.com` directly.
+- **Desktop app:** installable PWA (`public/manifest.json` + icons, linked from `public/index.html`). Electron/Tauri only if the PWA falls short (tray, global hotkey, launch at login).
 
 ## 3. Folder structure
 
@@ -227,7 +228,7 @@ Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining w
 
 ## 8. Milestones (each ends runnable and committed)
 
-1. **Scaffold** — Expo TS app, fonts load, theme + CRT overlay on an empty screen, web + Android run. ESLint/Prettier, jest-expo set up. `eas.json` (preview → APK) and a GitHub Pages deploy workflow.
+1. **Scaffold** — Expo TS app, fonts load, theme + CRT overlay on an empty screen, web + Android run. ESLint/Prettier, jest-expo set up. `eas.json` (preview → APK), GitHub Pages deploy workflow, PWA manifest + icons.
 2. **Domain** — `hexLayout`, `edges`, `spinPlan`, `sync`, Todoist colour map, all unit-tested. GET-only guard + its test.
 3. **Static board** — `Comb` renders sample data with project edges; responsive Mobile/Desktop shells; TODAY/LOG/HISTORY lists from sample data.
 4. **Spin** — bee animation playing a `spinPlan`, trail, log lines, landing state, action row, haptics.
