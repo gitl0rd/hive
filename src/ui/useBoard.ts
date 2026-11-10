@@ -64,6 +64,8 @@ export interface BoardModel {
     del: (flowerId: string) => void;
     sync: () => void;
     shuffle: () => void;
+    /** HISTORY */
+    deleteLanding: (l: Landing) => void;
   };
 }
 
@@ -172,6 +174,8 @@ export function useBoard(source: TodoistSource = sampleTodoistSource): BoardMode
       shuffle: () => {
         if (!locked) shuffleHive();
       },
+      deleteLanding: (l: Landing) =>
+        dispatch({ type: 'deleteLanding', at: l.at, flowerId: l.flowerId }),
       open: () => {
         const taskId = winner ? todoistTaskId(winner.id) : null;
         if (taskId) void openTodoistTask(taskId);

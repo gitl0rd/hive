@@ -20,7 +20,7 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 - Board of today + overdue Todoist tasks (all projects, including Work) plus Hive-only tasks.
 - Spin: bee animation, flight log, landing actions.
 - TODAY list: include/exclude toggle per task, add Hive task, delete Hive task, Sync.
-- HISTORY: past landings with time.
+- HISTORY: past landings with time; each entry has `DEL` to remove it from Hive's history (owner's request; never touches Todoist).
 - Footer meter + DONE count for today.
 - First-run token setup; Demo mode with sample data when there's no token.
 

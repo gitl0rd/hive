@@ -25,6 +25,7 @@ export type HiveAction =
   | { type: 'done'; id: string; now: Date }
   | { type: 'landed'; id: string; now: Date }
   | { type: 'shuffle'; seed: number; now: Date }
+  | { type: 'deleteLanding'; at: string; flowerId: string }
   | { type: 'synced'; incoming: Flower[]; todoistDone?: number; now: Date; boot?: boolean }
   | { type: 'syncFailed'; reason: string; now: Date }
   | { type: 'log'; lines: string[] };
@@ -136,6 +137,15 @@ export function hiveReducer(state: HiveState, action: HiveAction): HiveState {
         history: [landing, ...state.history].slice(0, HISTORY_CAP),
         day: { ...state.day, log: logged(log.landed(action.now, f.title, f.projectName)) },
       };
+    }
+
+    case 'deleteLanding': {
+      // Landings have no id; (time, flower) identifies one. Remove only the first match.
+      const i = state.history.findIndex(
+        (l) => l.at === action.at && l.flowerId === action.flowerId,
+      );
+      if (i < 0) return state;
+      return { ...state, history: [...state.history.slice(0, i), ...state.history.slice(i + 1)] };
     }
 
     case 'shuffle':

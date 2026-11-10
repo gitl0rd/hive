@@ -95,7 +95,7 @@ export function MobileLayout({ board }: { board: BoardModel }) {
         </View>
       ) : (
         <View style={styles.panel}>
-          <History landings={board.history} />
+          <History landings={board.history} onDelete={actions.deleteLanding} />
         </View>
       )}
 

@@ -131,6 +131,17 @@ describe('hiveReducer', () => {
     expect(s.history).toHaveLength(HISTORY_CAP);
   });
 
+  it('deletes one history entry, leaving the rest', () => {
+    let s = withTasks();
+    const t1 = new Date(2026, 10, 10, 9, 0);
+    const t2 = new Date(2026, 10, 10, 9, 5);
+    s = hiveReducer(s, { type: 'landed', id: 'hive:a', now: t1 });
+    s = hiveReducer(s, { type: 'landed', id: 'hive:b', now: t2 });
+    s = hiveReducer(s, { type: 'deleteLanding', at: t1.toISOString(), flowerId: 'hive:a' });
+    expect(s.history.map((l) => l.flowerId)).toEqual(['hive:b']);
+    expect(hiveReducer(s, { type: 'deleteLanding', at: 'nope', flowerId: 'hive:b' })).toBe(s);
+  });
+
   it('ignores unknown ids', () => {
     const s = withTasks();
     expect(hiveReducer(s, { type: 'toggle', id: 'nope' })).toBe(s);

@@ -115,7 +115,7 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
                 locked={board.locked}
               />
             ) : (
-              <History landings={board.history} fontSize={24} />
+              <History landings={board.history} fontSize={24} onDelete={actions.deleteLanding} />
             )}
           </Frame>
           <Frame title="FLIGHT.LOG" tagSize={22} style={{ height: logHeight }}>
