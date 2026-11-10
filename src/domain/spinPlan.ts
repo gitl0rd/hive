@@ -48,8 +48,8 @@ function moveFor(prevGap: number): number {
  * Plan a spin. Returns null if nothing is eligible.
  *
  * - Winner: uniform over eligible flowers.
- * - n random hops (15–20) over any occupied cell; 65% go to a neighbour. Never the same cell twice
- *   in a row.
+ * - n random hops (15–20) over eligible cells only; 65% go to an (eligible) neighbour. Never the
+ *   same cell twice in a row.
  * - Then (50% of the time) a fake-out onto a neighbour of the winner, then the winner.
  */
 export function planSpin(
@@ -70,8 +70,8 @@ export function planSpin(
   const start =
     startCell !== undefined && startCell >= 0 && startCell < layout.cells.length ? startCell : -1;
 
-  // Only one cell on the board: nowhere to fly but there.
-  if (layout.cells.length === 1) {
+  // Only one eligible flower: nowhere to fly but there.
+  if (eligibleCells.length === 1) {
     return {
       ...base,
       hops: [{ cellIndex: winner, kind: 'land', delayMs: 0, moveMs: moveFor(hopGap(0, 1)) }],
@@ -79,11 +79,16 @@ export function planSpin(
     };
   }
 
-  const all = layout.cells.map((_, i) => i);
+  // The bee only visits flowers it could land on (excluded / gone cells are skipped).
+  const all = eligibleCells;
+  const isEligible = new Set(eligibleCells);
   const nbCache = new Map<number, number[]>();
   const nbs = (i: number) => {
     let v = nbCache.get(i);
-    if (!v) nbCache.set(i, (v = occupiedNeighbourIndices(layout, i)));
+    if (!v) {
+      v = occupiedNeighbourIndices(layout, i).filter((j) => isEligible.has(j));
+      nbCache.set(i, v);
+    }
     return v;
   };
 

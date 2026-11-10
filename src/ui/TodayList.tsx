@@ -17,6 +17,8 @@ export interface TodayListProps {
   fontSize?: number;
   /** Winner's row renders in inverse video */
   highlightId?: string;
+  /** Bee in flight: no edits until it lands */
+  locked?: boolean;
 }
 
 /** TODAY: include/exclude toggles, Hive DEL, ADD, SYNC. */
@@ -29,11 +31,12 @@ export function TodayList({
   onSync,
   fontSize = 22,
   highlightId,
+  locked = false,
 }: TodayListProps) {
   const [draft, setDraft] = useState('');
   const submit = () => {
     const t = draft.trim();
-    if (!t) return;
+    if (!t || locked) return;
     onAdd?.(t);
     setDraft('');
   };
@@ -50,7 +53,8 @@ export function TodayList({
             <View key={f.id} style={styles.row}>
               <Pressable
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: on }}
+                accessibilityState={{ checked: on, disabled: locked }}
+                disabled={locked}
                 accessibilityLabel={`${on ? 'Exclude' : 'Include'} ${f.title}`}
                 onPress={() => onToggle?.(f.id)}
                 style={[
@@ -82,8 +86,10 @@ export function TodayList({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${f.title}`}
+                  accessibilityState={{ disabled: locked }}
+                  disabled={locked}
                   onPress={() => onDelete?.(f.id)}
-                  style={styles.del}
+                  style={[styles.del, locked ? styles.lockedCtl : null]}
                   testID={`del-${f.id}`}
                 >
                   <Text style={[styles.t, { fontSize: fontSize - 4, opacity: 0.7 }]}>DEL</Text>
@@ -103,7 +109,8 @@ export function TodayList({
           value={draft}
           onChangeText={setDraft}
           onSubmitEditing={submit}
-          placeholder="new hive task"
+          placeholder={locked ? 'bee in flight…' : 'new hive task'}
+          editable={!locked}
           placeholderTextColor={a(0.4)}
           accessibilityLabel="New Hive task"
           accessibilityLabelledBy="add-label"
@@ -114,6 +121,7 @@ export function TodayList({
         <TermButton
           label="OK"
           onPress={submit}
+          disabled={locked}
           height={40}
           fontSize={fontSize}
           style={styles.ok}
@@ -123,6 +131,7 @@ export function TodayList({
       <TermButton
         label="[ SYNC TODOIST ]"
         onPress={onSync}
+        disabled={locked}
         height={44}
         fontSize={fontSize}
         accessibilityLabel="Sync Todoist"
@@ -152,6 +161,7 @@ const styles = StyleSheet.create({
   title: { flex: 1, minWidth: 0 },
   struck: { textDecorationLine: 'line-through' },
   del: { width: 52, height: 44, alignItems: 'center', justifyContent: 'center' },
+  lockedCtl: { opacity: 0.35 },
   cmdRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
   input: {
     flex: 1,

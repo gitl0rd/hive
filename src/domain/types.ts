@@ -48,6 +48,11 @@ export interface DayState {
   log: string[];
   /** Board layout seed (Shuffle changes it) */
   seed: number;
+  /** Todoist tasks completed today, from the last successful sync */
+  todoistDone?: number;
 }
 
 export const HIVE_PROJECT_KEY = 'hive';
+export const HIVE_PROJECT_NAME = 'Hive';
+/** Hive-only tasks use the screen colour. */
+export const HIVE_COLOR = '#FFA526';

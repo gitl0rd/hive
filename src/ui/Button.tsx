@@ -37,6 +37,7 @@ export function TermButton({
         { height },
         filled ? styles.filled : glowBox ? styles.glowBox : null,
         pressed ? styles.pressed : null,
+        disabled && !filled ? styles.disabled : null,
         style,
       ]}
     >
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     boxShadow: `0 0 18px ${a(0.3)}, inset 0 0 14px ${a(0.15)}`,
   },
   pressed: { opacity: 0.7 },
+  disabled: { opacity: 0.45, boxShadow: 'none' },
   label: {
     fontFamily: fonts.display,
     color: colors.screen,

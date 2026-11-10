@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
+import { ShuffleButton } from './ShuffleButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
 import { FlightLog, winnerHeader } from './FlightLog';
@@ -36,6 +37,7 @@ export function MobileLayout({ board }: { board: BoardModel }) {
         <>
           <View style={styles.stats}>
             <Text style={styles.stat}>FLWR {pad2(board.counts.flowers)}</Text>
+            <ShuffleButton onPress={actions.shuffle} disabled={board.locked} />
             <Text style={styles.stat}>LATE {pad2(board.counts.late)}</Text>
           </View>
           <View style={styles.comb}>
@@ -84,7 +86,11 @@ export function MobileLayout({ board }: { board: BoardModel }) {
             flowers={board.flowers}
             excluded={board.excluded}
             onToggle={actions.toggle}
+            onAdd={actions.add}
+            onDelete={actions.del}
+            onSync={actions.sync}
             highlightId={winner?.id}
+            locked={board.locked}
           />
         </View>
       ) : (
@@ -100,7 +106,12 @@ export function MobileLayout({ board }: { board: BoardModel }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 26, gap: 10 },
-  stats: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
+  stats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   stat: {
     fontFamily: fonts.display,
     fontSize: 20,

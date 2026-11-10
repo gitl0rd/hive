@@ -167,7 +167,7 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 ### Spin (`domain/spinPlan.ts`)
 - Eligible = flowers not excluded and not gone.
 - Winner = uniform random from eligible (v1; weighting comes later).
-- Hops: 15–20 random hops; each hop 65% chance to a neighbour, otherwise anywhere; never the same cell twice in a row. Then, 50% of the time (owner's decision: not every spin), one fake-out hop onto a neighbour of the winner; then the winner.
+- Hops: 15–20 random hops over **eligible cells only** (the bee never visits excluded/gone cells); each hop 65% chance to an eligible neighbour, otherwise any eligible cell; never the same cell twice in a row (including the cell the bee sits on after AGAIN). One eligible flower → fly straight there. Then, 50% of the time (owner's decision: not every spin), one fake-out hop onto a neighbour of the winner; then the winner.
 - Gap after hop k: `70 + 520 * (k/n)^2.4` ms; fake-out pause 820ms; final settle 520ms. Bee move duration = `min(prevGap*0.85, 460)` ms, **stepped** (6 steps) for the pixel feel, driven by JS timers (see §2). Bee starts from the SPIN button. The player must cancel its timers on unmount and on a new spin.
 - Each hop appends `      hop NN  <title>` to the log; trail = last 5 hops as a dotted line.
 - On landing: log `HH:MM > LANDED: <TITLE> [<PROJECT>]` (rendered inverse), push to history, haptic `Heavy` on native.
@@ -179,6 +179,12 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 - REMOVE = exclude from today's spin only (never touches Todoist). Log `> rm <title> --today`.
 - DONE (Hive only) = set `doneAt`, `hiveDone++`, exclude. Log `> done <title>`.
 - AGAIN = spin again.
+
+### While the bee is in flight
+TODAY edits (toggle, ADD, DEL, SYNC) and SHUFFLE are disabled until it lands (owner's decision). Add/delete/sync/shuffle re-lay out the board, and excluding the chosen winner mid-flight would land on an excluded flower.
+
+### Shuffle
+A small `[SHUFFLE]` control: mobile in the middle of the `FLWR · LATE` stats row; desktop in the header next to the stats. New seed for today → new layout. Log: `HH:MM > shuffle comb ... ok`.
 
 ### TODAY list
 - Rows: `[x]`/`[ ]` toggle · TITLE · `!2D` late tag · project code (3 letters, in project colour) · `DEL` for Hive tasks.

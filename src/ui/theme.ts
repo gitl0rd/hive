@@ -1,5 +1,7 @@
 // Design tokens for the K terminal design (docs/PLAN.md §7).
 
+import { HIVE_COLOR } from '../domain/types';
+
 export const SCREEN_RGB = '255,165,38';
 
 /** Screen colour at an opacity: a(0.32) etc. */
@@ -15,7 +17,7 @@ export const colors = {
   /** window frames */
   frame: a(0.7),
   /** Hive-only tasks use the screen colour */
-  hive: '#FFA526',
+  hive: HIVE_COLOR,
 } as const;
 
 export const fonts = {

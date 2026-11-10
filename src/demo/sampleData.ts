@@ -5,6 +5,9 @@ import { HIVE_PROJECT_KEY } from '../domain/types';
 import { displayColor } from '../todoist/colors';
 import { colors } from '../ui/theme';
 
+export const sampleDone = 2;
+export const sampleSeed = 11;
+
 const todoist = (
   id: string,
   title: string,
@@ -31,17 +34,26 @@ const hive = (id: string, title: string): Flower => ({
   color: colors.hive,
 });
 
-export const sampleFlowers: Flower[] = [
+export const sampleTodoistFlowers: Flower[] = [
   todoist('1', 'pocket goblin', 'megadog', 'Mega Dog', 'magenta', 2),
   todoist('2', 'drawing app?', 'inbox', 'Inbox', 'charcoal', 2),
   todoist('3', 'remove a ff photo', 'inbox', 'Inbox', 'charcoal', 2),
   todoist('4', 'review deck', 'work', 'Work', 'sky_blue'),
   todoist('5', 'reply to sam', 'work', 'Work', 'sky_blue', 1),
-  hive('1', 'Sketch 10 min'),
-  hive('2', 'Tidy the desk'),
-  hive('3', 'Read 20 pages'),
-  hive('4', 'Gym'),
 ];
+
+/** Demo Hive tasks (Demo mode seeds these in M6). */
+export const sampleHiveTitles = ['Sketch 10 min', 'Tidy the desk', 'Read 20 pages', 'Gym'];
+
+export const sampleFlowers: Flower[] = [
+  ...sampleTodoistFlowers,
+  ...sampleHiveTitles.map((t, i) => hive(String(i + 1), t)),
+];
+
+/** Stand-in for the Todoist API until M6 (and for Demo mode). */
+export async function sampleTodoistSource() {
+  return { flowers: sampleTodoistFlowers, completedToday: sampleDone };
+}
 
 export const sampleLog: string[] = [
   'HIVE.EXE v2.0',
@@ -67,6 +79,3 @@ export const sampleHistory: Landing[] = [
     at: '2026-11-10T07:15:00',
   },
 ];
-
-export const sampleDone = 2;
-export const sampleSeed = 11;

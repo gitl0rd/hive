@@ -17,6 +17,14 @@ export const log = {
   sync: (now: Date, added: number, hiveKept: number) =>
     `${hhmm(now)} > sync todoist ... +${added} new, ${hiveKept} hive kept`,
   added: (now: Date, title: string) => `${hhmm(now)} > add "${title.toLowerCase()}" ... ok`,
+  deleted: (now: Date, title: string) => `${hhmm(now)} > del "${title.toLowerCase()}"`,
+  shuffled: (now: Date) => `${hhmm(now)} > shuffle comb ... ok`,
+  loadHive: (now: Date, count: number) => `${hhmm(now)} > load hive ...... ok (${count})`,
+  overdue: (now: Date, count: number) =>
+    `${hhmm(now)} > ${count} flower${count === 1 ? '' : 's'} overdue`,
+  ready: (now: Date) => `${hhmm(now)} > ready.`,
+  syncFailed: (now: Date, reason: string) =>
+    `${hhmm(now)} > sync todoist ... FAILED (${reason}), kept last data`,
 };
 
 /** Append lines, keeping only the newest LOG_CAP. */

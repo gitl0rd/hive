@@ -1,7 +1,7 @@
 // Board state + spin playback for the UI. Domain functions decide; this hook only plays them.
 // M5 adds persistence (Hive tasks, history, day state) around the same reducer.
 import * as Haptics from 'expo-haptics';
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 
 import { boardCounts, eligibleIds, layoutItems } from '../domain/board';
@@ -10,14 +10,8 @@ import { log } from '../domain/logLines';
 import { planSpin } from '../domain/spinPlan';
 import { spinTimeline } from '../domain/timeline';
 import type { Flower, Landing } from '../domain/types';
-import {
-  sampleDone,
-  sampleFlowers,
-  sampleHistory,
-  sampleLog,
-  sampleSeed,
-} from '../demo/sampleData';
-import { boardReducer, type BoardState } from '../store/boardReducer';
+import { sampleTodoistSource } from '../demo/sampleData';
+import { type TodoistSource, useHive } from '../store/useHive';
 import { todoistAppUrl, todoistTaskId, todoistWebUrl } from '../todoist/links';
 
 export type Phase = 'idle' | 'flying' | 'landed';
@@ -43,6 +37,10 @@ const IDLE: SpinView = { phase: 'idle', bee: HOME, trail: [], winner: -1 };
 const TRAIL_CELLS = 5;
 
 export interface BoardModel {
+  /** Storage loaded */
+  ready: boolean;
+  /** True while the bee is in flight: list edits and Shuffle are locked */
+  locked: boolean;
   flowers: Flower[];
   layout: BoardLayout;
   excluded: ReadonlySet<string>;
@@ -61,21 +59,18 @@ export interface BoardModel {
     open: () => void;
     done: () => void;
     remove: () => void;
+    /** TODAY list */
+    add: (title: string) => void;
+    del: (flowerId: string) => void;
+    sync: () => void;
+    shuffle: () => void;
   };
 }
 
-const initialState = (): BoardState => ({
-  flowers: sampleFlowers,
-  excluded: [],
-  log: sampleLog,
-  history: sampleHistory,
-  hiveDone: 0,
-  todoistDone: sampleDone,
-  seed: sampleSeed,
-});
-
-export function useBoard(): BoardModel {
-  const [state, dispatch] = useReducer(boardReducer, undefined, initialState);
+export function useBoard(source: TodoistSource = sampleTodoistSource): BoardModel {
+  const hive = useHive(source);
+  const { state, dispatch, flowers } = hive;
+  const { day } = state;
   // Flight state is tied to the layout it was planned on. If the layout changes (task added,
   // deleted, shuffled) the cell indices are stale, so the board reads as idle again.
   const [flight, setFlight] = useState<{ layout: BoardLayout | null; view: SpinView }>({
@@ -88,9 +83,12 @@ export function useBoard(): BoardModel {
     timers.current = [];
   };
 
+  // Layout depends only on the seed and each flower's id + project, so key it on exactly that.
+  const layoutKey = `${day.seed}|${flowers.map((f) => `${f.id}:${f.projectKey}`).join(',')}`;
   const layout = useMemo(
-    () => layoutBoard(state.seed, layoutItems(state.flowers)),
-    [state.seed, state.flowers],
+    () => layoutBoard(day.seed, layoutItems(flowers)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on what the layout reads
+    [layoutKey],
   );
   const view = flight.layout === layout ? flight.view : IDLE;
   const setView = (update: (v: SpinView) => SpinView) =>
@@ -98,12 +96,9 @@ export function useBoard(): BoardModel {
   // Stop any flight when the layout changes or the board unmounts.
   useEffect(() => clearTimers, [layout]);
 
-  const excluded = useMemo(() => new Set(state.excluded), [state.excluded]);
-  const included = useMemo(
-    () => eligibleIds(state.flowers, state.excluded),
-    [state.flowers, state.excluded],
-  );
-  const byId = useMemo(() => new Map(state.flowers.map((f) => [f.id, f])), [state.flowers]);
+  const excluded = useMemo(() => new Set(day.excluded), [day.excluded]);
+  const included = useMemo(() => eligibleIds(flowers, day.excluded), [flowers, day.excluded]);
+  const byId = useMemo(() => new Map(flowers.map((f) => [f.id, f])), [flowers]);
 
   const spin = useCallback(() => {
     if (view.phase === 'flying') return;
@@ -145,7 +140,7 @@ export function useBoard(): BoardModel {
         }, ev.atMs),
       );
     }
-  }, [layout, included, byId, view]);
+  }, [layout, included, byId, view, dispatch]);
 
   const winner =
     view.phase === 'landed' && view.winner >= 0
@@ -157,10 +152,26 @@ export function useBoard(): BoardModel {
     setFlight((f) => ({ layout: f.layout, view: IDLE }));
   }, []);
 
+  const locked = view.phase === 'flying';
+  const { addTask, deleteTask, sync: syncHive, shuffle: shuffleHive } = hive;
   const actions = useMemo(
     () => ({
       spin,
-      toggle: (id: string) => dispatch({ type: 'toggle', id }),
+      toggle: (id: string) => {
+        if (!locked) dispatch({ type: 'toggle', id });
+      },
+      add: (title: string) => {
+        if (!locked) addTask(title);
+      },
+      del: (flowerId: string) => {
+        if (!locked) deleteTask(flowerId);
+      },
+      sync: () => {
+        if (!locked) void syncHive();
+      },
+      shuffle: () => {
+        if (!locked) shuffleHive();
+      },
       open: () => {
         const taskId = winner ? todoistTaskId(winner.id) : null;
         if (taskId) void openTodoistTask(taskId);
@@ -176,18 +187,20 @@ export function useBoard(): BoardModel {
         settle();
       },
     }),
-    [spin, winner, settle],
+    [spin, winner, settle, locked, dispatch, addTask, deleteTask, syncHive, shuffleHive],
   );
 
   return {
-    flowers: state.flowers,
+    ready: hive.ready,
+    locked,
+    flowers,
     layout,
     excluded,
     included,
-    counts: boardCounts(state.flowers, state.excluded),
-    log: state.log,
+    counts: boardCounts(flowers, day.excluded),
+    log: day.log,
     history: state.history,
-    done: state.hiveDone + state.todoistDone,
+    done: day.hiveDone + (day.todoistDone ?? 0),
     spin: view,
     winner,
     actions,

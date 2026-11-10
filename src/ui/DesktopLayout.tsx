@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
+import { ShuffleButton } from './ShuffleButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
 import { FlightLog, winnerHeader } from './FlightLog';
@@ -40,9 +41,16 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
         <Text style={styles.brand}>
           HIVE·OS <Text style={{ opacity: 0.55 }}>{'// DAILY SPIN'}</Text>
         </Text>
-        <Text style={styles.statLine}>
-          FLWR {pad2(board.counts.flowers)} LATE {pad2(board.counts.late)} DONE {pad2(board.done)}
-        </Text>
+        <View style={styles.headerRight}>
+          <ShuffleButton onPress={actions.shuffle} disabled={board.locked} fontSize={22} />
+          <Text style={styles.statLine}>
+            {[
+              `FLWR ${pad2(board.counts.flowers)}`,
+              `LATE ${pad2(board.counts.late)}`,
+              `DONE ${pad2(board.done)}`,
+            ].join('\u00A0\u00A0\u00A0')}
+          </Text>
+        </View>
       </View>
 
       <View style={[styles.main, wrapped ? styles.mainWrapped : null]}>
@@ -99,8 +107,12 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
                 flowers={board.flowers}
                 excluded={board.excluded}
                 onToggle={actions.toggle}
+                onAdd={actions.add}
+                onDelete={actions.del}
+                onSync={actions.sync}
                 fontSize={24}
                 highlightId={winner?.id}
+                locked={board.locked}
               />
             ) : (
               <History landings={board.history} fontSize={24} />
@@ -157,6 +169,7 @@ const styles = StyleSheet.create({
     color: colors.screen,
     ...glow,
   },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 24 },
   statLine: {
     fontFamily: fonts.display,
     fontSize: 26,

@@ -48,10 +48,20 @@ describe('planSpin', () => {
     for (let s = 1; s <= 300; s++) check(2, ['f0', 'f1'], s);
   });
 
-  it('works when only one of many flowers is eligible', () => {
+  it('works when only one of many flowers is eligible: straight there', () => {
     for (let s = 1; s <= 100; s++) {
       const { plan } = check(8, ['f3'], s);
       expect(plan.winnerFlowerId).toBe('f3');
+      expect(plan.hops).toHaveLength(1);
+    }
+  });
+
+  it('only ever visits eligible cells', () => {
+    for (let s = 1; s <= 200; s++) {
+      const n = 4 + (s % 15);
+      const eligible = ids(n).filter((_, i) => i % 3 !== 1);
+      const { layout, plan } = check(n, eligible, s);
+      for (const h of plan.hops) expect(eligible).toContain(layout.cells[h.cellIndex].flowerId);
     }
   });
 
