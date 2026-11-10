@@ -3,7 +3,9 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { TermButton } from './Button';
 import { Frame } from './Frame';
-import { a, colors, fonts, glow } from './theme';
+import type { ThemeTokens } from '../themes';
+import { fonts } from './theme';
+import { useTheme, useThemedStyles } from './ThemeContext';
 
 export type ConnectResult = { ok: true } | { ok: false; reason: 'bad token' | 'offline' | string };
 
@@ -17,6 +19,8 @@ export function TokenSetup({
   onDemo?: () => void;
   onCancel?: () => void;
 }) {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +47,7 @@ export function TokenSetup({
     <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
       <View style={styles.col}>
         <Text style={styles.brand}>
-          HIVE·OS <Text style={{ opacity: 0.55 }}>{'// SETUP'}</Text>
+          {t.theme.words.brand} <Text style={{ opacity: 0.55 }}>{'// SETUP'}</Text>
         </Text>
         <Frame title="TODOIST.LINK" style={styles.win}>
           <Text style={styles.label} nativeID="token-label">
@@ -59,7 +63,7 @@ export function TokenSetup({
             autoComplete="off"
             spellCheck={false}
             placeholder="paste API token"
-            placeholderTextColor={a(0.4)}
+            placeholderTextColor={t.a(0.4)}
             accessibilityLabel="Todoist API token"
             accessibilityLabelledBy="token-label"
             style={styles.input}
@@ -104,34 +108,35 @@ export function TokenSetup({
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 22 },
-  col: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: 22 },
-  brand: {
-    fontFamily: fonts.display,
-    fontSize: 40,
-    letterSpacing: 3,
-    color: colors.screen,
-    ...glow,
-  },
-  win: { paddingTop: 26, paddingHorizontal: 16, paddingBottom: 18, gap: 14 },
-  label: { fontFamily: fonts.display, fontSize: 24, color: colors.screen, ...glow },
-  input: {
-    height: 44,
-    borderBottomWidth: 2,
-    borderBottomColor: a(0.5),
-    color: colors.screen,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    paddingHorizontal: 4,
-  },
-  error: { fontFamily: fonts.display, fontSize: 20, color: colors.screen, ...glow },
-  note: {
-    fontFamily: fonts.display,
-    fontSize: 18,
-    letterSpacing: 1,
-    color: colors.screen,
-    opacity: 0.7,
-    ...glow,
-  },
-});
+const makeStyles = (t: ThemeTokens) =>
+  StyleSheet.create({
+    scroll: { flexGrow: 1, justifyContent: 'center', padding: 22 },
+    col: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: 22 },
+    brand: {
+      fontFamily: fonts.display,
+      fontSize: 40,
+      letterSpacing: 3,
+      color: t.screen,
+      ...t.glow,
+    },
+    win: { paddingTop: 26, paddingHorizontal: 16, paddingBottom: 18, gap: 14 },
+    label: { fontFamily: fonts.display, fontSize: 24, color: t.screen, ...t.glow },
+    input: {
+      height: 44,
+      borderBottomWidth: 2,
+      borderBottomColor: t.a(0.5),
+      color: t.screen,
+      fontFamily: fonts.body,
+      fontSize: 16,
+      paddingHorizontal: 4,
+    },
+    error: { fontFamily: fonts.display, fontSize: 20, color: t.screen, ...t.glow },
+    note: {
+      fontFamily: fonts.display,
+      fontSize: 18,
+      letterSpacing: 1,
+      color: t.screen,
+      opacity: 0.7,
+      ...t.glow,
+    },
+  });

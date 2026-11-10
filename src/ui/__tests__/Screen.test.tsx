@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import type { Settings } from '../../store/settings';
 import { Screen } from '../Screen';
+import { ThemeProvider } from '../ThemeContext';
 
 jest.mock('expo-crypto', () => {
   let n = 0;
@@ -13,6 +14,7 @@ const settings = (over: Partial<Settings> = {}): Settings => ({
   mode: 'demo',
   haptics: false,
   reducedMotion: false,
+  theme: 'hive',
   ...over,
 });
 
@@ -103,5 +105,55 @@ describe('Screen (Demo mode)', () => {
     expect(screen.getByText(/reset comb \.\.\. bee home/)).toBeTruthy();
     await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));
     expect(screen.getAllByText('DEL')).toHaveLength(1); // the landing stays in history
+  });
+});
+
+describe('Screen themes', () => {
+  it('settings switch the theme', async () => {
+    const onSettingsChange = jest.fn();
+    await render(
+      <Screen
+        mode="demo"
+        token={null}
+        settings={settings()}
+        onSettingsChange={onSettingsChange}
+        onReplaceToken={jest.fn()}
+        onForgetToken={jest.fn()}
+        onLeaveDemo={jest.fn()}
+      />,
+    );
+    await fireEvent.press(screen.getByLabelText('Settings'));
+    expect(screen.getByRole('radio', { name: 'HIVE theme' }).props.accessibilityState).toEqual({
+      checked: true,
+    });
+    await fireEvent.press(screen.getByRole('radio', { name: 'BRAIN HIVE theme' }));
+    expect(onSettingsChange).toHaveBeenLastCalledWith(expect.objectContaining({ theme: 'brain' }));
+  });
+
+  it('BRAIN HIVE re-words the board and the log', async () => {
+    await render(
+      <ThemeProvider id="brain">
+        <Screen
+          mode="demo"
+          token={null}
+          settings={settings({ theme: 'brain', reducedMotion: true })}
+          onSettingsChange={jest.fn()}
+          onReplaceToken={jest.fn()}
+          onForgetToken={jest.fn()}
+          onLeaveDemo={jest.fn()}
+        />
+      </ThemeProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText("9 of 9 thoughts in today's spin")).toBeTruthy(),
+    );
+    expect(screen.getByText('BRAIN·HIVE DEMO')).toBeTruthy();
+    expect(screen.getByText('SYNAPSE.LOG')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'THINK' })).toBeTruthy();
+
+    await fireEvent.press(screen.getByLabelText('Think'));
+    await waitFor(() => expect(screen.getByLabelText('Spin again')).toBeTruthy());
+    expect(screen.getByText(/FOCUS:/)).toBeTruthy(); // log shows the newest line
+    expect(screen.queryByText(/LANDED:/)).toBeNull();
   });
 });

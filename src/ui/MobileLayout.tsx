@@ -12,6 +12,7 @@ import { History } from './History';
 import { BracketTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import { sizes } from './theme';
+import { useTheme } from './ThemeContext';
 import type { BoardModel } from './useBoard';
 
 /** App-level bits the layouts show: Demo marker, settings cog. */
@@ -21,24 +22,25 @@ export interface Chrome {
 }
 
 type Tab = 'spin' | 'today' | 'log';
-const TABS = [
-  { id: 'spin' as const, label: 'SPIN' },
-  { id: 'today' as const, label: 'TODAY' },
-  { id: 'log' as const, label: 'LOG' },
-];
 
 /** K wrist unit + flight log (390×844 reference). */
 export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chrome }) {
+  const words = useTheme().theme.words;
+  const tabs = [
+    { id: 'spin' as const, label: words.spinTab },
+    { id: 'today' as const, label: 'TODAY' },
+    { id: 'log' as const, label: 'LOG' },
+  ];
   const [tab, setTab] = useState<Tab>('spin');
   const size = sizes.mobile;
   const { spin, winner, actions } = board;
   const flying = spin.phase === 'flying';
   const nothingToSpin = board.counts.flowers === 0;
-  const spinLabel = flying ? '◌ IN FLIGHT …' : nothingToSpin ? 'NOTHING TO SPIN' : '▶ SPIN';
+  const spinLabel = flying ? words.spinning : nothingToSpin ? words.nothingToSpin : words.spin;
 
   return (
     <View style={styles.root}>
-      <BracketTabs tabs={TABS} active={tab} onChange={setTab} />
+      <BracketTabs tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'spin' ? (
         <>
@@ -52,9 +54,7 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
               size={size}
               spin={spin}
               emptyMessage={
-                board.ready && board.flowers.length === 0
-                  ? 'NO FLOWERS. ADD ONE OR SYNC.'
-                  : undefined
+                board.ready && board.flowers.length === 0 ? words.emptyBoard : undefined
               }
             />
             {board.flowers.length > 0 ? (
@@ -67,7 +67,7 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
               </View>
             ) : null}
           </View>
-          <Frame title="FLIGHT.LOG" style={styles.log}>
+          <Frame title={words.log} style={styles.log}>
             <FlightLog
               lines={board.log}
               showCursor={!flying}
@@ -95,7 +95,11 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
               fontSize={30}
               style={styles.spin}
               accessibilityLabel={
-                flying ? 'Bee in flight' : nothingToSpin ? 'Nothing to spin' : 'Spin'
+                flying
+                  ? words.a11y.inFlight
+                  : nothingToSpin
+                    ? words.a11y.nothingToSpin
+                    : words.a11y.spin
               }
             />
           )}
@@ -120,7 +124,7 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
       )}
 
       <Footer
-        label={chrome.demo ? 'HIVE·OS DEMO' : 'HIVE·OS'}
+        label={chrome.demo ? `${words.brand} DEMO` : words.brand}
         flowers={board.flowers}
         included={board.included}
         done={board.done}

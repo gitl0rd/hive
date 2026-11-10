@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppRoot } from './src/ui/AppRoot';
-import { colors } from './src/ui/theme';
+import { getTheme } from './src/themes';
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({ VT323_400Regular, ShareTechMono_400Regular });
@@ -22,5 +22,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1, backgroundColor: getTheme('hive').palette.bg },
 });

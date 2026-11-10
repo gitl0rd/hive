@@ -63,7 +63,8 @@ src/
     storage.ts             AsyncStorage/SecureStore wrappers + keys
     useHive.ts             reducer + effects (load, sync, spin, add, done…)
   ui/
-    theme.ts               tokens (§7)
+    theme.ts               shared tokens: fonts, layout, sizes (§7)
+    ThemeContext.tsx       ThemeProvider / useTheme (§7b)
     Screen.tsx             picks MobileLayout / DesktopLayout by width
     MobileLayout.tsx
     DesktopLayout.tsx
@@ -239,6 +240,17 @@ Footer: `HIVE·OS v2 | meter | DONE NN`. Below ~1000px the right column wraps un
 Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A small pixel-art settings cog in the footer (next to `HIVE·OS`; replaced the original `CFG` text at the owner's request) lets you replace or forget the token and toggle haptics.
 
 Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. Settings (cog in the footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: settings cog > REPLACE TOKEN`.
+
+## 7b. Themes (post-v1)
+
+Owner request: switchable themes from the settings cog (CFG.SYS → THEME), with all theme wording in one place.
+
+- `src/themes/` is the theme directory: one file per theme (`hive.ts` = K, the default; `brain.ts` = BRAIN HIVE from the canvas row "Experiment · BRAIN HIVE"), plus `types.ts` (what a theme holds), `sprites.ts` (pixel bee / winged brain), `tokens.ts` (derived colours), `log.ts`, `index.ts` (registry). Pure, unit-tested. Add a theme: new file + entry in `THEMES` and `ThemeId`.
+- A theme holds: palette (bg, screen, Hive-task colour, trail, wing), every themed word (brand, window titles, phase tags, SPIN/THINK, empty states, screen-reader names), sprite, backdrop pattern (`gyri` = faint brain folds), flight-log rewrites, icon names.
+- UI reads it via `ThemeProvider` / `useTheme` / `useThemedStyles` (`src/ui/ThemeContext.tsx`). `src/ui/theme.ts` keeps only what themes share (fonts, layout, sizes).
+- Stored data stays theme-free: the flight log is stored in hive words and rewritten for display, Hive tasks are stored with the hive colour and shown in the theme's Hive colour. Switching theme relabels everything, including today's log.
+- BRAIN HIVE: screen `#FF8FB8` on `#0E0509`; Hive-only tasks, wings and trail in synapse cyan `#7FE3FF` (stays distinct from magenta projects); `BRAIN·HIVE`, `CORTEX.SYS`, `SYNAPSE.LOG`, `● AWAKE / ◌ FIRING / ■ FOCUSED`, `▶ THINK`, log `fire synapse` / `spark NN` / `FOCUS:`.
+- Icon follows the theme. Web: favicon, apple-touch-icon, theme-color swap at runtime (an installed PWA keeps its install-time icon). Android/iOS: `expo-alternate-app-icons` (activity-alias `MainActivityBrain`); needs a new EAS build. Icons come from `scripts/make-icons.py` (one set per theme).
 
 ## 8. Milestones (each ends runnable and committed)
 

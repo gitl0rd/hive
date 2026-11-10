@@ -4,7 +4,9 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { lateTag, projectCode } from '../domain/labels';
 import type { Flower } from '../domain/types';
 import { TermButton } from './Button';
-import { a, colors, fonts, glow, noGlow } from './theme';
+import { itemColor, type ThemeTokens } from '../themes';
+import { fonts } from './theme';
+import { useTheme, useThemedStyles } from './ThemeContext';
 
 export interface TodayListProps {
   flowers: Flower[];
@@ -33,6 +35,8 @@ export function TodayList({
   highlightId,
   locked = false,
 }: TodayListProps) {
+  const theme = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [draft, setDraft] = useState('');
   const submit = () => {
     const t = draft.trim();
@@ -48,7 +52,8 @@ export function TodayList({
         {flowers.map((f) => {
           const on = !excluded.has(f.id);
           const inv = f.id === highlightId;
-          const ink = inv ? { color: colors.bg, ...noGlow } : null;
+          const ink = inv ? { color: theme.bg, ...theme.noGlow } : null;
+          const color = itemColor(f.color, f.source === 'hive', theme);
           return (
             <View key={f.id} style={styles.row}>
               <Pressable
@@ -60,7 +65,7 @@ export function TodayList({
                 style={[
                   styles.rowBtn,
                   { opacity: on ? 1 : 0.4 },
-                  inv ? { backgroundColor: colors.screen } : null,
+                  inv ? { backgroundColor: theme.screen } : null,
                 ]}
                 testID={`toggle-${f.id}`}
               >
@@ -73,9 +78,7 @@ export function TodayList({
                     {lateTag(f.daysLate)}
                   </Text>
                 ) : null}
-                <Text
-                  style={[styles.t, text, inv ? ink : { color: f.color, textShadowColor: f.color }]}
-                >
+                <Text style={[styles.t, text, inv ? ink : { color, textShadowColor: color }]}>
                   {projectCode(f.projectName)}
                 </Text>
               </Pressable>
@@ -106,9 +109,9 @@ export function TodayList({
           value={draft}
           onChangeText={setDraft}
           onSubmitEditing={submit}
-          placeholder={locked ? 'bee in flight…' : 'new hive task'}
+          placeholder={locked ? theme.theme.words.lockedPlaceholder : 'new hive task'}
           editable={!locked}
-          placeholderTextColor={a(0.4)}
+          placeholderTextColor={theme.a(0.4)}
           accessibilityLabel="New Hive task"
           accessibilityLabelledBy="add-label"
           returnKeyType="done"
@@ -140,44 +143,45 @@ export function TodayList({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, gap: 6, minHeight: 0 },
-  list: { flex: 1 },
-  listContent: { paddingBottom: 4 },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  rowBtn: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 8,
-  },
-  t: { fontFamily: fonts.display, color: colors.screen, ...glow },
-  title: { flex: 1, minWidth: 0 },
-  struck: { textDecorationLine: 'line-through' },
-  del: { width: 52, height: 44, alignItems: 'center', justifyContent: 'center' },
-  lockedCtl: { opacity: 0.35 },
-  cmdRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
-  input: {
-    flex: 1,
-    minWidth: 0,
-    height: 40,
-    borderBottomWidth: 2,
-    borderBottomColor: a(0.5),
-    color: colors.screen,
-    fontFamily: fonts.display,
-    paddingHorizontal: 4,
-    ...glow,
-  },
-  ok: { minWidth: 60, backgroundColor: a(0.1) },
-  note: {
-    fontFamily: fonts.display,
-    color: colors.screen,
-    opacity: 0.6,
-    letterSpacing: 1.5,
-    textAlign: 'center',
-    ...glow,
-  },
-});
+const makeStyles = (t: ThemeTokens) =>
+  StyleSheet.create({
+    wrap: { flex: 1, gap: 6, minHeight: 0 },
+    list: { flex: 1 },
+    listContent: { paddingBottom: 4 },
+    row: { flexDirection: 'row', alignItems: 'center' },
+    rowBtn: {
+      flex: 1,
+      minWidth: 0,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 8,
+    },
+    t: { fontFamily: fonts.display, color: t.screen, ...t.glow },
+    title: { flex: 1, minWidth: 0 },
+    struck: { textDecorationLine: 'line-through' },
+    del: { width: 52, height: 44, alignItems: 'center', justifyContent: 'center' },
+    lockedCtl: { opacity: 0.35 },
+    cmdRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      height: 40,
+      borderBottomWidth: 2,
+      borderBottomColor: t.a(0.5),
+      color: t.screen,
+      fontFamily: fonts.display,
+      paddingHorizontal: 4,
+      ...t.glow,
+    },
+    ok: { minWidth: 60, backgroundColor: t.a(0.1) },
+    note: {
+      fontFamily: fonts.display,
+      color: t.screen,
+      opacity: 0.6,
+      letterSpacing: 1.5,
+      textAlign: 'center',
+      ...t.glow,
+    },
+  });

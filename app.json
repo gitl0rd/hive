@@ -35,6 +35,21 @@
       "themeColor": "#0B0600",
       "backgroundColor": "#0B0600"
     },
-    "plugins": ["expo-font"]
+    "plugins": [
+      "expo-font",
+      [
+        "expo-alternate-app-icons",
+        [
+          {
+            "name": "Brain",
+            "ios": "./assets/themes/brain/icon.png",
+            "android": {
+              "foregroundImage": "./assets/themes/brain/android-icon-foreground.png",
+              "backgroundColor": "#0E0509"
+            }
+          }
+        ]
+      ]
+    ]
   }
 }

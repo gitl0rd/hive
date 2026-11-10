@@ -1,6 +1,6 @@
 import Svg, { Rect } from 'react-native-svg';
 
-import { colors } from './theme';
+import { useTheme } from './ThemeContext';
 
 // 11x11 pixel cog: eight teeth around a ring with a hole, same pixel style as the bee.
 const COG = [
@@ -18,7 +18,9 @@ const COG = [
 ];
 
 /** Settings cog, `size` px square, crisp pixels. Decorative: label the button around it. */
-export function PixelCog({ size = 18, color = colors.screen }: { size?: number; color?: string }) {
+export function PixelCog({ size = 18, color }: { size?: number; color?: string }) {
+  const theme = useTheme();
+  const fill = color ?? theme.screen;
   return (
     <Svg
       width={size}
@@ -30,7 +32,7 @@ export function PixelCog({ size = 18, color = colors.screen }: { size?: number; 
       {COG.flatMap((row, y) =>
         [...row].map((ch, x) =>
           ch === 'X' ? (
-            <Rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={color} />
+            <Rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={fill} />
           ) : null,
         ),
       )}
