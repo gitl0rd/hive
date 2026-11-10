@@ -1,7 +1,9 @@
-import { Defs, G, Pattern, Rect } from 'react-native-svg';
+import type React from 'react';
+import { Circle, Defs, G, Pattern, Rect, Text as SvgText } from 'react-native-svg';
 
 import type { Backdrop } from '../themes';
-import { pixelatePath } from './pixelPath';
+import { asciiFor, haloCells, pathCells, pixelatePath } from './pixelPath';
+import { fonts } from './theme';
 
 // Faint repeating pattern drawn behind everything (a theme's `backdrop`): one SVG pattern tile;
 // `k` scales it up a little on desktop.
@@ -13,6 +15,18 @@ const GYRI =
 /** Pixel size of the folds, in tile units (140×120 tile = 35×30 pixels). */
 const GYRI_CELL = 4;
 const GYRI_PIXELS = pixelatePath(GYRI, 140, 120, GYRI_CELL);
+
+// Trial variants
+const CHUNK = { w: 7, h: 6 }; // 20×20 grid
+const CHUNK_PIXELS = pathCells(GYRI, 140, 120, CHUNK.w, CHUNK.h).map((p): [number, number] => [
+  p.c,
+  p.r,
+]);
+const CHUNK_HALO = haloCells(CHUNK_PIXELS, 20, 20);
+const ASCII = { w: 7, h: 10 }; // 20×12 grid
+const ASCII_CELLS = pathCells(GYRI, 140, 120, ASCII.w, ASCII.h);
+const DOT_COLS = 35;
+const DOT_ROWS = 30;
 
 const ID = 'backdrop';
 
@@ -49,6 +63,81 @@ export function BackdropDefs({
         </Pattern>
       </Defs>
     );
+  }
+  const tile = (children: React.ReactNode) => (
+    <Defs>
+      <Pattern id={ID} width={140 * k} height={120 * k} patternUnits="userSpaceOnUse">
+        <G transform={`scale(${k})`}>{children}</G>
+      </Pattern>
+    </Defs>
+  );
+  if (kind === 'gyriChunky') {
+    return tile(
+      <>
+        {CHUNK_HALO.map(([c, r]) => (
+          <Rect
+            key={`h${c}-${r}`}
+            x={c * CHUNK.w}
+            y={r * CHUNK.h}
+            width={CHUNK.w}
+            height={CHUNK.h}
+            fill={color}
+            fillOpacity={0.018}
+          />
+        ))}
+        {CHUNK_PIXELS.map(([c, r]) => (
+          <Rect
+            key={`${c}-${r}`}
+            x={c * CHUNK.w}
+            y={r * CHUNK.h}
+            width={CHUNK.w}
+            height={CHUNK.h}
+            fill={color}
+            fillOpacity={0.08}
+          />
+        ))}
+      </>,
+    );
+  }
+  if (kind === 'gyriAscii') {
+    return tile(
+      <>
+        {ASCII_CELLS.map((p) => (
+          <SvgText
+            key={`${p.c}-${p.r}`}
+            x={p.c * ASCII.w + ASCII.w / 2}
+            y={p.r * ASCII.h + ASCII.h * 0.85}
+            fontFamily={fonts.display}
+            fontSize={ASCII.h * 1.15}
+            textAnchor="middle"
+            fill={color}
+            fillOpacity={0.24}
+          >
+            {asciiFor(p.angle)}
+          </SvgText>
+        ))}
+      </>,
+    );
+  }
+  if (kind === 'gyriDots') {
+    const lit = new Set(GYRI_PIXELS.map(([c, r]) => `${c},${r}`));
+    const dots: React.ReactNode[] = [];
+    for (let r = 0; r < DOT_ROWS; r++) {
+      for (let c = 0; c < DOT_COLS; c++) {
+        const on = lit.has(`${c},${r}`);
+        dots.push(
+          <Circle
+            key={`${c}-${r}`}
+            cx={c * 4 + 2}
+            cy={r * 4 + 2}
+            r={on ? 1.3 : 0.7}
+            fill={color}
+            fillOpacity={on ? 0.16 : 0.035}
+          />,
+        );
+      }
+    }
+    return tile(<>{dots}</>);
   }
   return null;
 }
