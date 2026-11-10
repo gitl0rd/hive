@@ -142,11 +142,11 @@ export function useHive(source: TodoistSource, opts: HiveOptions = {}): Hive {
   }, [ready, save, state.day]);
 
   // Only recompute when the inputs change (not on log lines, exclusions, history...).
-  const { todoistFlowers, date } = state.day;
+  const { todoistFlowers, date, hidden } = state.day;
   const { tasks } = state;
   const flowers = useMemo(
-    () => boardFlowers({ tasks, day: { date, todoistFlowers } }),
-    [tasks, date, todoistFlowers],
+    () => boardFlowers({ tasks, day: { date, todoistFlowers, hidden } }),
+    [tasks, date, todoistFlowers, hidden],
   );
 
   return {

@@ -16,6 +16,7 @@ describe('day', () => {
       date: '2026-11-10',
       todoistFlowers: [],
       excluded: [],
+      hidden: [],
       hiveDone: 0,
       log: ['HIVE.EXE v2.0'],
       seed: 42,

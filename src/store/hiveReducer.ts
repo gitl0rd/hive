@@ -22,6 +22,8 @@ export type HiveAction =
   | { type: 'deleteTask'; flowerId: string; now: Date }
   | { type: 'toggle'; id: string }
   | { type: 'remove'; id: string; now: Date }
+  | { type: 'hide'; id: string; now: Date }
+  | { type: 'unhideAll'; now: Date }
   | { type: 'done'; id: string; now: Date }
   | { type: 'landed'; id: string; now: Date }
   | { type: 'shuffle'; seed: number; now: Date }
@@ -34,12 +36,25 @@ export function initialHiveState(today: string, seed: number): HiveState {
   return { tasks: [], history: [], day: freshDay(today, seed) };
 }
 
-/** Everything on today's board: synced Todoist flowers + carried-over Hive tasks. */
+/**
+ * Everything on today's board: synced Todoist flowers (minus ones hidden for today) +
+ * carried-over Hive tasks. Hidden flowers stay in `todoistFlowers` so sync doesn't re-add them.
+ */
 export function boardFlowers(state: {
   tasks: readonly HiveTask[];
-  day: Pick<DayState, 'date' | 'todoistFlowers'>;
+  day: Pick<DayState, 'date' | 'todoistFlowers' | 'hidden'>;
 }): Flower[] {
-  return [...state.day.todoistFlowers, ...hiveFlowers(state.tasks, state.day.date)];
+  const hidden = new Set(state.day.hidden ?? []);
+  const todoist = hidden.size
+    ? state.day.todoistFlowers.filter((f) => !hidden.has(f.id))
+    : state.day.todoistFlowers;
+  return [...todoist, ...hiveFlowers(state.tasks, state.day.date)];
+}
+
+/** Todoist flowers hidden from today's board that are still synced (count for the UI). */
+export function hiddenCount(day: Pick<DayState, 'todoistFlowers' | 'hidden'>): number {
+  const hidden = new Set(day.hidden ?? []);
+  return day.todoistFlowers.filter((f) => hidden.has(f.id)).length;
 }
 
 export function hiveReducer(state: HiveState, action: HiveAction): HiveState {
@@ -103,6 +118,23 @@ export function hiveReducer(state: HiveState, action: HiveAction): HiveState {
         excluded: exclude(state.day.excluded, f.id),
         log: logged(log.removed(action.now, f.title)),
       });
+    }
+
+    case 'hide': {
+      // Hide a Todoist task from today's board and list. Hive only; Todoist is never touched.
+      const f = flower(action.id);
+      if (!f || f.source !== 'todoist') return state;
+      return withDay({
+        hidden: [...(state.day.hidden ?? []), f.id],
+        excluded: state.day.excluded.filter((x) => x !== f.id),
+        log: logged(log.hidden(action.now, f.title)),
+      });
+    }
+
+    case 'unhideAll': {
+      const n = hiddenCount(state.day);
+      if (!(state.day.hidden ?? []).length) return state;
+      return withDay({ hidden: [], log: logged(log.unhidden(action.now, n)) });
     }
 
     case 'done': {
