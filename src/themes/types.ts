@@ -6,6 +6,9 @@ import type { Sprite } from './sprites';
 
 export type ThemeId = 'hive' | 'brain';
 
+/** Faint pattern behind everything (src/ui/Backdrops.tsx) */
+export type Backdrop = 'none' | 'gyri';
+
 export interface ThemePalette {
   /** Background */
   bg: string;
@@ -69,7 +72,7 @@ export interface Theme {
   words: ThemeWords;
   sprite: Sprite;
   /** Faint pattern drawn behind everything */
-  backdrop: 'none' | 'gyri';
+  backdrop: Backdrop;
   /**
    * Flight log rewrites. The log is stored in the default (hive) wording and rewritten when shown,
    * so switching theme relabels the whole log. Applied in order to each line.

@@ -5,7 +5,7 @@ import { hive } from './hive';
 import { type ThemeTokens, themeTokens } from './tokens';
 import type { Theme, ThemeId } from './types';
 
-export type { Theme, ThemeId, ThemePalette, ThemeWords } from './types';
+export type { Backdrop, Theme, ThemeId, ThemePalette, ThemeWords } from './types';
 export type { ThemeTokens } from './tokens';
 export { itemColor } from './tokens';
 export { themeLogLine } from './log';
