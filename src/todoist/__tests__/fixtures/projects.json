@@ -1,0 +1,26 @@
+{
+  "results": [
+    {
+      "id": "6Jf8VQXxpwv56VQ7",
+      "name": "Mega Dog",
+      "color": "magenta",
+      "is_archived": false,
+      "is_deleted": false,
+      "is_favorite": false,
+      "is_shared": false,
+      "view_style": "list",
+      "child_order": 1,
+      "can_assign_tasks": false,
+      "inbox_project": false
+    },
+    {
+      "id": "6Jf8VQXxpwv56VQ8",
+      "name": "Inbox",
+      "color": "charcoal",
+      "is_archived": false,
+      "is_deleted": false,
+      "inbox_project": true
+    }
+  ],
+  "next_cursor": null
+}

@@ -1,0 +1,61 @@
+import type { ReactNode } from 'react';
+import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+
+import { colors, fonts, glow } from './theme';
+
+/** A terminal window: thin frame with title tags sitting on the top edge. */
+export function Frame({
+  title,
+  right,
+  tagSize = 20,
+  style,
+  children,
+  accessibilityLabel,
+}: {
+  title?: ReactNode;
+  right?: ReactNode;
+  tagSize?: number;
+  style?: StyleProp<ViewStyle>;
+  children?: ReactNode;
+  accessibilityLabel?: string;
+}) {
+  const tagTop = -Math.round(tagSize * 0.6);
+  return (
+    <View style={[styles.frame, style]} accessibilityLabel={accessibilityLabel}>
+      {children}
+      {title ? (
+        typeof title === 'string' ? (
+          <Text style={[styles.tag, { top: tagTop, left: 12, fontSize: tagSize }]}>{title}</Text>
+        ) : (
+          <View style={[styles.tagSlot, { top: tagTop - 4, left: 12 }]}>{title}</View>
+        )
+      ) : null}
+      {right ? (
+        <Text style={[styles.tag, { top: tagTop, right: 12, fontSize: tagSize }]}>{right}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  frame: {
+    position: 'relative',
+    borderWidth: 1.5,
+    borderColor: colors.frame,
+  },
+  tag: {
+    position: 'absolute',
+    paddingHorizontal: 8,
+    backgroundColor: colors.bg,
+    color: colors.screen,
+    fontFamily: fonts.display,
+    letterSpacing: 2,
+    lineHeight: undefined,
+    ...glow,
+  },
+  tagSlot: {
+    position: 'absolute',
+    flexDirection: 'row',
+    gap: 6,
+  },
+});

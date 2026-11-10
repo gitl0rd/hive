@@ -20,7 +20,7 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 - Board of today + overdue Todoist tasks (all projects, including Work) plus Hive-only tasks.
 - Spin: bee animation, flight log, landing actions.
 - TODAY list: include/exclude toggle per task, add Hive task, delete Hive task, Sync.
-- HISTORY: past landings with time.
+- HISTORY: past landings with time; each entry has `DEL` to remove it from Hive's history (owner's request; never touches Todoist).
 - Footer meter + DONE count for today.
 - First-run token setup; Demo mode with sample data when there's no token.
 
@@ -31,7 +31,7 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 
 - **Expo (SDK latest stable) + TypeScript**, `blank-typescript` template, Expo Router not needed (single screen + a setup modal).
 - `react-native-svg` — hexes, edges, trail, pixel bee.
-- `react-native-reanimated` — bee movement (stepped motion), landing glow.
+- Bee movement: plain JS timers (`setTimeout`) play the `spinPlan` step by step. No `react-native-reanimated` in v1. The motion is stepped anyway, and this avoids Reanimated+SVG problems on web. The landing glow can be a simple RN `Animated` opacity fade.
 - `@react-native-async-storage/async-storage` — Hive tasks, history, per-day state.
 - `expo-secure-store` — token on iOS/Android (fallback to AsyncStorage on web).
 - `expo-haptics` — thud on landing (native only).
@@ -39,6 +39,9 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 - `expo-linking` — "Open in Todoist".
 - Tests: `jest-expo` + `@testing-library/react-native`.
 - Targets: Android (owner's phone), web (desktop + quick previews). iOS should work but isn't a priority.
+- **Android delivery:** EAS Build, `preview` profile → standalone APK (`eas.json` in repo; owner runs `eas build -p android --profile preview`).
+- **Web delivery:** `npx expo export -p web` → GitHub Pages, deployed by a GitHub Action on push to `main` (`EXPO_BASE_URL=/hive` → `experiments.baseUrl` via `app.config.ts`). Static only; the browser calls `api.todoist.com` directly.
+- **Desktop app:** installable PWA (`public/manifest.json` + icons, linked from `public/index.html`). Electron/Tauri only if the PWA falls short (tray, global hotkey, launch at login).
 
 ## 3. Folder structure
 
@@ -85,6 +88,8 @@ Keep `domain/` pure (no React, no I/O) so it's fully unit-tested.
 Base: `https://api.todoist.com/api/v1`. Auth header: `Authorization: Bearer <token>`. CORS is allowed from any origin, so the web build can call it directly.
 
 > Verify each path and response shape against the official v1 reference before relying on it (https://developer.todoist.com/api/v1/). If a path differs, fix it in `api.ts` only.
+>
+> **Verified (M6)** against the official SDK `@doist/todoist-sdk` 11 (endpoint constants + zod schemas), since developer.todoist.com wasn't reachable from the build sandbox: paths above are correct; lists return `{ results, next_cursor }`, completed returns `{ items, next_cursor }`; `since`/`until` are ISO timestamps. Fixtures in `src/todoist/__tests__/fixtures/` follow those shapes.
 
 | Purpose | Request | Notes |
 |---|---|---|
@@ -157,15 +162,15 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 - Pointy-top hexes, odd-row offset coordinates. Neighbour table:
   - even row: `(c+1,r) 0°, (c,r-1) -60°, (c-1,r-1) -120°, (c-1,r) 180°, (c-1,r+1) 120°, (c,r+1) 60°`
   - odd row: `(c+1,r) 0°, (c+1,r-1) -60°, (c,r-1) -120°, (c-1,r) 180°, (c,r+1) 120°, (c+1,r+1) 60°`
-- One cell per active flower (excluded flowers keep their cell, dimmed). Start at (0,0); repeatedly add a frontier cell chosen with weight = (number of filled neighbours)³ — compact blob, no gaps. Then shuffle which flower goes in which cell. All randomness from a seeded PRNG (mulberry32) using `day.seed`, so the layout is stable all day until Shuffle.
+- One cell per active flower (excluded flowers keep their cell, dimmed). Start at (0,0); repeatedly add a frontier cell chosen with weight = (number of filled neighbours)³ — compact blob, no gaps. **Then carve the blob into project territories (owner's decision):** biggest project first, start in the unclaimed cell with the fewest unclaimed neighbours, grow into touching unclaimed cells weighted by (territory neighbours)³; shuffle flowers within their territory. A territory may rarely end up in two pieces if boxed in. All randomness from a seeded PRNG (mulberry32) using `day.seed`, so the layout is stable all day until Shuffle. **Full re-layout (owner's decision):** the layout is a pure function of `(seed, flowers)` and is recomputed whenever the flower set changes (add / sync / delete). Cells may move when that happens; that's accepted. Don't store cell positions.
 - Cell width 150 (desktop) / 112 (mobile) in board units; whole board scales down to fit its area (never up). Lots of tasks → smaller cells (owner OK'd this).
 - **Edges:** for each cell side, draw a border on that cell's side if the neighbour is empty or a different `projectKey`. Colour = the cell's project colour; 3–3.5px, slight glow. Same-project neighbours share no border, so projects form territories.
 
 ### Spin (`domain/spinPlan.ts`)
 - Eligible = flowers not excluded and not gone.
 - Winner = uniform random from eligible (v1; weighting comes later).
-- Hops: 15–20 random hops; each hop 65% chance to a neighbour, otherwise anywhere; never the same cell twice in a row. Then one fake-out hop onto a neighbour of the winner, then the winner.
-- Gap after hop k: `70 + 520 * (k/n)^2.4` ms; fake-out pause 820ms; final settle 520ms. Bee move duration = `min(prevGap*0.85, 460)` ms, **stepped** (6 steps) for the pixel feel. Bee starts from the SPIN button.
+- Hops: 15–20 random hops over **eligible cells only** (the bee never visits excluded/gone cells); each hop 65% chance to an eligible neighbour, otherwise any eligible cell; never the same cell twice in a row (including the cell the bee sits on after AGAIN). One eligible flower → fly straight there. Then, 50% of the time (owner's decision: not every spin), one fake-out hop onto a neighbour of the winner; then the winner.
+- Gap after hop k: `70 + 520 * (k/n)^2.4` ms; fake-out pause 820ms; final settle 520ms. Bee move duration = `min(prevGap*0.85, 460)` ms, **stepped** (6 steps) for the pixel feel, driven by JS timers (see §2). Bee starts from the SPIN button. The player must cancel its timers on unmount and on a new spin.
 - Each hop appends `      hop NN  <title>` to the log; trail = last 5 hops as a dotted line.
 - On landing: log `HH:MM > LANDED: <TITLE> [<PROJECT>]` (rendered inverse), push to history, haptic `Heavy` on native.
 - Pure function returns `{ winner, hops: [{ cellIndex, delayMs, moveMs }] }`; the UI just plays it. Unit-test: winner always eligible, last hop = winner, no consecutive repeats, works with 1 and 2 eligible flowers, returns null with 0.
@@ -176,6 +181,12 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 - REMOVE = exclude from today's spin only (never touches Todoist). Log `> rm <title> --today`.
 - DONE (Hive only) = set `doneAt`, `hiveDone++`, exclude. Log `> done <title>`.
 - AGAIN = spin again.
+
+### While the bee is in flight
+TODAY edits (toggle, ADD, DEL, SYNC) and SHUFFLE are disabled until it lands (owner's decision). Add/delete/sync/shuffle re-lay out the board, and excluding the chosen winner mid-flight would land on an excluded flower.
+
+### Shuffle
+A small `[SHUFFLE]` control: mobile in the middle of the `FLWR · LATE` stats row; desktop in the header next to the stats. New seed for today → new layout. Log: `HH:MM > shuffle comb ... ok`.
 
 ### TODAY list
 - Rows: `[x]`/`[ ]` toggle · TITLE · `!2D` late tag · project code (3 letters, in project colour) · `DEL` for Hive tasks.
@@ -198,7 +209,7 @@ hiveColor screen    (Hive-only tasks use the screen colour)
 fonts     display: VT323   body/log: Share Tech Mono
 glow      text-shadow 0 0 6px rgba(screen,0.55)
 ```
-Project colours: map Todoist names → hex, then brighten any colour whose relative luminance is too low for a near-black background (e.g. charcoal #808080 → ~#9A9A9A).
+Project colours: map Todoist names → hex, then brighten colours too dark for a near-black background: relative luminance < 0.32 **and** HSL lightness < 0.6 → raise lightness to 0.6, keeping hue/saturation (charcoal #808080 → #999999; magenta stays #E05194 as in the design).
 `berry_red #b8256f, red #db4035, orange #ff9933, yellow #fad000, olive_green #afb83b, lime_green #7ecc49, green #299438, mint_green #6accbc, teal #158fad, sky_blue #14aaf5, light_blue #96c3eb, blue #4073ff, grape #884dff, violet #af38eb, lavender #eb96eb, magenta #e05194, salmon #ff8d85, charcoal #808080, grey #b8b8b8, taupe #ccac93`
 
 CRT overlay (pointer-events none, above everything): horizontal scanlines (1px dark every 3px, ~26% black), radial vignette to ~55% black at the edges, rounded bezel (radius ~30) with a faint inner glow. On native, render scanlines as an SVG pattern or a repeated image; don't block touches.
@@ -223,15 +234,18 @@ Footer: `HIVE·OS v2 | meter | DONE NN`. Below ~1000px the right column wraps un
 ### Token setup (first run)
 Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A `CFG`/settings entry (small, in the footer) lets you replace or forget the token and toggle haptics.
 
+Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. CFG (footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: CFG > REPLACE TOKEN`.
+
 ## 8. Milestones (each ends runnable and committed)
 
-1. **Scaffold** — Expo TS app, fonts load, theme + CRT overlay on an empty screen, web + Android run. ESLint/Prettier, jest-expo set up.
+1. **Scaffold** — Expo TS app, fonts load, theme + CRT overlay on an empty screen, web + Android run. ESLint/Prettier, jest-expo set up. `eas.json` (preview → APK), GitHub Pages deploy workflow, PWA manifest + icons.
 2. **Domain** — `hexLayout`, `edges`, `spinPlan`, `sync`, Todoist colour map, all unit-tested. GET-only guard + its test.
 3. **Static board** — `Comb` renders sample data with project edges; responsive Mobile/Desktop shells; TODAY/LOG/HISTORY lists from sample data.
 4. **Spin** — bee animation playing a `spinPlan`, trail, log lines, landing state, action row, haptics.
 5. **Persistence** — Hive tasks add/delete/done, history, DayState + rollover, Shuffle.
 6. **Todoist** — token setup, read-only client, sync (add-only), completed-today count, Open in Todoist, demo mode, error states (offline / bad token → log line + keep last data).
 7. **Polish** — empty states (`NO FLOWERS. ADD ONE OR SYNC.`), 1-flower spin, very long titles (truncate in cells, full in list), 20+ flowers (board shrinks), reduced-motion setting (instant landing), accessibility labels on every control.
+   - *As built:* SPIN reads `NOTHING TO SPIN` (disabled) when every flower is off; on shrunken boards cell labels keep ≥ ~8–10px on screen with fewer lines; reduced motion = CFG toggle **or** the OS setting (prefers-reduced-motion on web), lands instantly with no hop lines; the comb is one accessible image whose label describes the board/landing, and landings are announced to screen readers. A test walks every tab and CFG checking each button/checkbox/tab/image has a name.
 
 **Done when:** on Android and desktop web, with a real token, today+overdue tasks appear with project-coloured borders, a spin plays and lands, actions work, Hive tasks survive an app restart, and there is provably no non-GET call to Todoist.
 

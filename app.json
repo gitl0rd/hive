@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Hive",
+    "slug": "hive",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0600",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0600"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gitl0rd.hive"
+    },
+    "android": {
+      "package": "com.gitl0rd.hive",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0600",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "Hive",
+      "shortName": "Hive",
+      "description": "Daily spin over today's tasks",
+      "themeColor": "#0B0600",
+      "backgroundColor": "#0B0600"
+    },
+    "plugins": ["expo-font"]
+  }
+}
