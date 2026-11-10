@@ -42,6 +42,8 @@ export interface DayState {
   todoistFlowers: Flower[];
   /** Flower ids toggled off / removed for today */
   excluded: string[];
+  /** Todoist flower ids hidden from today's board and list ("I'll do it later"). Back tomorrow. */
+  hidden?: string[];
   /** Hive tasks marked DONE today */
   hiveDone: number;
   /** Flight log lines (cap 200) */
