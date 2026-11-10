@@ -3,8 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
-import { ResetButton } from './ResetButton';
-import { ShuffleButton } from './ShuffleButton';
+import { CombButton } from './CombButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
 import { FlightLog, winnerHeader } from './FlightLog';
@@ -46,7 +45,6 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
         <>
           <View style={styles.stats}>
             <Text style={styles.stat}>FLWR {pad2(board.counts.flowers)}</Text>
-            <ShuffleButton onPress={actions.shuffle} disabled={board.locked} />
             <Text style={styles.stat}>LATE {pad2(board.counts.late)}</Text>
           </View>
           <View style={styles.comb}>
@@ -62,9 +60,13 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
                   : undefined
               }
             />
-            {spin.phase !== 'idle' ? (
-              <View style={styles.reset}>
-                <ResetButton onPress={actions.reset} />
+            {board.flowers.length > 0 ? (
+              <View style={styles.cornerBtn}>
+                <CombButton
+                  phase={spin.phase}
+                  onShuffle={actions.shuffle}
+                  onReset={actions.reset}
+                />
               </View>
             ) : null}
           </View>
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
     ...glow,
   },
   comb: { flex: 1, minHeight: 200 },
-  reset: { position: 'absolute', right: 0, bottom: 0 },
+  cornerBtn: { position: 'absolute', right: 0, bottom: 0 },
   log: { height: 206, marginTop: 8 },
   spin: { marginHorizontal: 18, marginTop: 14, marginBottom: 6 },
   actions: { marginTop: 14, marginBottom: 8 },

@@ -84,15 +84,21 @@ describe('Screen (Demo mode)', () => {
     expect(screen.getByRole('image').props.accessibilityLabel).toMatch(/^Comb. The bee landed on/);
   });
 
-  it('RESET returns to the idle board without removing anything', async () => {
+  it('corner button: SHUFFLE when idle, RESET after landing (removes nothing)', async () => {
     await renderDemo({ reducedMotion: true });
-    expect(screen.queryByTestId('reset-comb')).toBeNull();
+    expect(screen.getByText('[SHUFFLE]')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Shuffle the board'));
+    expect(screen.getByText(/shuffle comb \.\.\. ok/)).toBeTruthy();
+
     await fireEvent.press(screen.getByLabelText('Spin'));
     await waitFor(() => expect(screen.getByLabelText('Spin again')).toBeTruthy());
-    await fireEvent.press(screen.getByTestId('reset-comb'));
+    expect(screen.getByText('[RESET]')).toBeTruthy();
+    expect(screen.queryByText('[SHUFFLE]')).toBeNull();
+
+    await fireEvent.press(screen.getByLabelText('Reset the comb'));
     expect(screen.getByLabelText('Spin')).toBeTruthy();
     expect(screen.queryByLabelText('Spin again')).toBeNull();
-    expect(screen.queryByTestId('reset-comb')).toBeNull();
+    expect(screen.getByText('[SHUFFLE]')).toBeTruthy();
     expect(screen.getByText('FLWR 09')).toBeTruthy(); // nothing excluded
     expect(screen.getByText(/reset comb \.\.\. bee home/)).toBeTruthy();
     await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));

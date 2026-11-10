@@ -3,8 +3,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
-import { ResetButton } from './ResetButton';
-import { ShuffleButton } from './ShuffleButton';
+import { CombButton } from './CombButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
 import { FlightLog, winnerHeader } from './FlightLog';
@@ -46,7 +45,6 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
           HIVE·OS <Text style={{ opacity: 0.55 }}>{'// DAILY SPIN'}</Text>
         </Text>
         <View style={styles.headerRight}>
-          <ShuffleButton onPress={actions.shuffle} disabled={board.locked} fontSize={22} />
           <Text style={styles.statLine}>
             {[
               `FLWR ${pad2(board.counts.flowers)}`,
@@ -62,8 +60,13 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
           title="COMB.SYS"
           right={phaseTag}
           bottomRight={
-            spin.phase !== 'idle' ? (
-              <ResetButton onPress={actions.reset} fontSize={22} />
+            board.flowers.length > 0 ? (
+              <CombButton
+                phase={spin.phase}
+                onShuffle={actions.shuffle}
+                onReset={actions.reset}
+                fontSize={22}
+              />
             ) : undefined
           }
           tagSize={22}

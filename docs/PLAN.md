@@ -181,13 +181,16 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 - REMOVE = exclude from today's spin only (never touches Todoist). Log `> rm <title> --today`.
 - DONE (Hive only) = set `doneAt`, `hiveDone++`, exclude. Log `> done <title>`.
 - AGAIN = spin again.
-- `[RESET]` (owner's request; bottom-right of the COMB.SYS frame on desktop, bottom-right of the board on mobile; shown only after a landing or during a flight) = back to the idle board without REMOVE/OPEN/DONE: clears the winner, bee home, aborts a flight in progress. The landing stays in history. Log: `> reset comb ... bee home` / `> recall bee ... flight aborted`.
+- `[RESET]` in the comb corner = back to the idle board without REMOVE/OPEN/DONE (see Shuffle / Reset).
 
 ### While the bee is in flight
-TODAY edits (toggle, ADD, DEL, SYNC) and SHUFFLE are disabled until it lands (owner's decision). Add/delete/sync/shuffle re-lay out the board, and excluding the chosen winner mid-flight would land on an excluded flower.
+TODAY edits (toggle, ADD, DEL, SYNC) are disabled until it lands (the corner control reads `[RESET]` then) (owner's decision). Add/delete/sync/shuffle re-lay out the board, and excluding the chosen winner mid-flight would land on an excluded flower.
 
-### Shuffle
-A small `[SHUFFLE]` control: mobile in the middle of the `FLWR · LATE` stats row; desktop in the header next to the stats. New seed for today → new layout. Log: `HH:MM > shuffle comb ... ok`.
+### Shuffle / Reset (one corner control)
+A single text control at the bottom-right of the COMB.SYS frame (desktop) / of the board (mobile), named for what it does now (owner's decision):
+- idle board: `[SHUFFLE]` — new seed for today → new layout. Log: `HH:MM > shuffle comb ... ok`.
+- landed or in flight: `[RESET]` — back to the idle board without REMOVE/OPEN/DONE: clears the winner, bee home, aborts a flight. The landing stays in history. Log: `> reset comb ... bee home` / `> recall bee ... flight aborted`.
+Hidden when the board is empty. There is no separate shuffle control in the header/stats row.
 
 ### TODAY list
 - Rows: `[x]`/`[ ]` toggle · TITLE · `!2D` late tag · project code (3 letters, in project colour) · `DEL` for Hive tasks.
