@@ -56,6 +56,8 @@ export function planSpin(
   layout: BoardLayout,
   eligibleFlowerIds: ReadonlySet<string>,
   rng: Rng,
+  /** Cell the bee is sitting on (e.g. after AGAIN); the first hop won't repeat it. */
+  startCell?: number,
 ): SpinPlan | null {
   const eligibleCells = layout.cells
     .map((c, i) => (eligibleFlowerIds.has(c.flowerId) ? i : -1))
@@ -65,7 +67,10 @@ export function planSpin(
   const winner = pick(rng, eligibleCells);
   const base = { winnerFlowerId: layout.cells[winner].flowerId, winnerCellIndex: winner };
 
-  // Only one cell on the board: nowhere to fly but home.
+  const start =
+    startCell !== undefined && startCell >= 0 && startCell < layout.cells.length ? startCell : -1;
+
+  // Only one cell on the board: nowhere to fly but there.
   if (layout.cells.length === 1) {
     return {
       ...base,
@@ -84,7 +89,7 @@ export function planSpin(
 
   const n = randInt(rng, SPIN.minHops, SPIN.maxHops);
   const path: number[] = [];
-  let prev = -1;
+  let prev = start;
   for (let k = 1; k <= n; k++) {
     const nearby = prev >= 0 ? nbs(prev) : [];
     const pool =

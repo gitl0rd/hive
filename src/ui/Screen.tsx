@@ -5,13 +5,13 @@ import { Crt, CrtBackdrop } from './Crt';
 import { DesktopLayout } from './DesktopLayout';
 import { MobileLayout } from './MobileLayout';
 import { colors, layout, sizes } from './theme';
-import { useSampleBoard } from './useSampleBoard';
+import { useBoard } from './useBoard';
 
 /** Picks the mobile or desktop layout by width, under the CRT overlay. */
 export function Screen() {
   const { width } = useWindowDimensions();
   const desktop = width >= layout.desktopMinWidth;
-  const board = useSampleBoard();
+  const board = useBoard();
 
   return (
     <View style={styles.root}>

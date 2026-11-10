@@ -100,6 +100,20 @@ describe('planSpin', () => {
     expect(planDurationMs(plan)).toBeLessThan(10000);
   });
 
+  it('never starts by hopping onto the cell the bee sits on', () => {
+    for (let s = 1; s <= 300; s++) {
+      const n = 2 + (s % 10);
+      const layout = layoutBoard(s, items(n));
+      const start = s % n;
+      const plan = planSpin(layout, new Set(ids(n)), mulberry32(s), start)!;
+      expect(plan.hops[0].cellIndex).not.toBe(start);
+      for (let i = 1; i < plan.hops.length; i++) {
+        expect(plan.hops[i].cellIndex).not.toBe(plan.hops[i - 1].cellIndex);
+      }
+      expect(plan.hops[plan.hops.length - 1].cellIndex).toBe(plan.winnerCellIndex);
+    }
+  });
+
   it('winner is roughly uniform', () => {
     const layout = layoutBoard(3, items(4));
     const counts: Record<string, number> = {};

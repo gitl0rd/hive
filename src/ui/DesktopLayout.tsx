@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { pad2 } from '../domain/labels';
+import { ActionRow } from './ActionRow';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
-import { FlightLog } from './FlightLog';
+import { FlightLog, winnerHeader } from './FlightLog';
 import { Footer } from './Footer';
 import { Frame } from './Frame';
 import { History } from './History';
 import { FrameTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import { colors, fonts, glow, layout, sizes } from './theme';
-import type { BoardModel } from './useSampleBoard';
+import type { BoardModel } from './useBoard';
 
 type Tab = 'today' | 'history';
 
@@ -21,6 +22,9 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
   const { width, height } = useWindowDimensions();
   const wrapped = width < layout.desktopWrapWidth;
   const size = sizes.desktop;
+  const { spin, winner, actions } = board;
+  const flying = spin.phase === 'flying';
+  const phaseTag = flying ? '◌ IN FLIGHT' : winner ? '■ LANDED' : '● READY';
   const tabs = [
     { id: 'today' as const, label: `TODAY · ${pad2(board.counts.flowers)}` },
     { id: 'history' as const, label: 'HISTORY' },
@@ -44,15 +48,45 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
       <View style={[styles.main, wrapped ? styles.mainWrapped : null]}>
         <Frame
           title="COMB.SYS"
-          right="● READY"
+          right={phaseTag}
           tagSize={22}
           style={[styles.combWin, wrapped ? styles.combWinWrapped : null]}
           accessibilityLabel="Comb"
         >
           <View style={styles.combArea}>
-            <Comb flowers={board.flowers} excluded={board.excluded} seed={board.seed} size={size} />
+            <Comb
+              flowers={board.flowers}
+              layout={board.layout}
+              excluded={board.excluded}
+              size={size}
+              spin={spin}
+            />
           </View>
-          <TermButton label="▶ SPIN" glowBox height={60} fontSize={30} style={styles.spin} />
+          {winner ? (
+            <View style={styles.spin}>
+              <ActionRow
+                source={winner.source}
+                title={winner.title}
+                onOpen={actions.open}
+                onDone={actions.done}
+                onRemove={actions.remove}
+                onAgain={actions.spin}
+                height={60}
+                fontSize={30}
+              />
+            </View>
+          ) : (
+            <TermButton
+              label={flying ? '◌ IN FLIGHT …' : '▶ SPIN'}
+              glowBox={!flying}
+              disabled={flying}
+              onPress={actions.spin}
+              height={60}
+              fontSize={30}
+              style={styles.spin}
+              accessibilityLabel={flying ? 'Bee in flight' : 'Spin'}
+            />
+          )}
         </Frame>
 
         <View style={[styles.right, wrapped ? styles.rightWrapped : null]}>
@@ -64,15 +98,21 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
               <TodayList
                 flowers={board.flowers}
                 excluded={board.excluded}
-                onToggle={board.toggle}
+                onToggle={actions.toggle}
                 fontSize={24}
+                highlightId={winner?.id}
               />
             ) : (
               <History landings={board.history} fontSize={24} />
             )}
           </Frame>
           <Frame title="FLIGHT.LOG" tagSize={22} style={{ height: logHeight }}>
-            <FlightLog lines={board.log} fontSize={14} />
+            <FlightLog
+              lines={board.log}
+              fontSize={14}
+              showCursor={!flying}
+              header={winner ? winnerHeader(winner, 52, 24) : undefined}
+            />
           </Frame>
         </View>
       </View>

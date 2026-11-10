@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { lateTag, projectCode } from '../domain/labels';
 import type { Flower } from '../domain/types';
 import { TermButton } from './Button';
-import { a, colors, fonts, glow } from './theme';
+import { a, colors, fonts, glow, noGlow } from './theme';
 
 export interface TodayListProps {
   flowers: Flower[];
@@ -15,6 +15,8 @@ export interface TodayListProps {
   onSync?: () => void;
   /** 22 (mobile) / 24 (desktop) */
   fontSize?: number;
+  /** Winner's row renders in inverse video */
+  highlightId?: string;
 }
 
 /** TODAY: include/exclude toggles, Hive DEL, ADD, SYNC. */
@@ -26,6 +28,7 @@ export function TodayList({
   onAdd,
   onSync,
   fontSize = 22,
+  highlightId,
 }: TodayListProps) {
   const [draft, setDraft] = useState('');
   const submit = () => {
@@ -41,6 +44,8 @@ export function TodayList({
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
         {flowers.map((f) => {
           const on = !excluded.has(f.id);
+          const inv = f.id === highlightId;
+          const ink = inv ? { color: colors.bg, ...noGlow } : null;
           return (
             <View key={f.id} style={styles.row}>
               <Pressable
@@ -48,20 +53,28 @@ export function TodayList({
                 accessibilityState={{ checked: on }}
                 accessibilityLabel={`${on ? 'Exclude' : 'Include'} ${f.title}`}
                 onPress={() => onToggle?.(f.id)}
-                style={[styles.rowBtn, { opacity: on ? 1 : 0.4 }]}
+                style={[
+                  styles.rowBtn,
+                  { opacity: on ? 1 : 0.4 },
+                  inv ? { backgroundColor: colors.screen } : null,
+                ]}
                 testID={`toggle-${f.id}`}
               >
-                <Text style={[styles.t, text]}>{on ? '[x]' : '[ ]'}</Text>
+                <Text style={[styles.t, text, ink]}>{on ? '[x]' : '[ ]'}</Text>
                 <Text
-                  style={[styles.t, text, styles.title, on ? null : styles.struck]}
+                  style={[styles.t, text, styles.title, on ? null : styles.struck, ink]}
                   numberOfLines={1}
                 >
                   {f.title.toUpperCase()}
                 </Text>
                 {f.daysLate ? (
-                  <Text style={[styles.t, text, { opacity: 0.85 }]}>{lateTag(f.daysLate)}</Text>
+                  <Text style={[styles.t, text, { opacity: 0.85 }, ink]}>
+                    {lateTag(f.daysLate)}
+                  </Text>
                 ) : null}
-                <Text style={[styles.t, text, { color: f.color, textShadowColor: f.color }]}>
+                <Text
+                  style={[styles.t, text, inv ? ink : { color: f.color, textShadowColor: f.color }]}
+                >
                   {projectCode(f.projectName)}
                 </Text>
               </Pressable>

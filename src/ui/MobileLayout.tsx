@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { pad2 } from '../domain/labels';
+import { ActionRow } from './ActionRow';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
-import { FlightLog } from './FlightLog';
+import { FlightLog, winnerHeader } from './FlightLog';
 import { Footer } from './Footer';
 import { Frame } from './Frame';
 import { History } from './History';
 import { BracketTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import { colors, fonts, glow, sizes } from './theme';
-import type { BoardModel } from './useSampleBoard';
+import type { BoardModel } from './useBoard';
 
 type Tab = 'spin' | 'today' | 'log';
 const TABS = [
@@ -24,6 +25,8 @@ const TABS = [
 export function MobileLayout({ board }: { board: BoardModel }) {
   const [tab, setTab] = useState<Tab>('spin');
   const size = sizes.mobile;
+  const { spin, winner, actions } = board;
+  const flying = spin.phase === 'flying';
 
   return (
     <View style={styles.root}>
@@ -36,16 +39,53 @@ export function MobileLayout({ board }: { board: BoardModel }) {
             <Text style={styles.stat}>LATE {pad2(board.counts.late)}</Text>
           </View>
           <View style={styles.comb}>
-            <Comb flowers={board.flowers} excluded={board.excluded} seed={board.seed} size={size} />
+            <Comb
+              flowers={board.flowers}
+              layout={board.layout}
+              excluded={board.excluded}
+              size={size}
+              spin={spin}
+            />
           </View>
           <Frame title="FLIGHT.LOG" style={styles.log}>
-            <FlightLog lines={board.log} />
+            <FlightLog
+              lines={board.log}
+              showCursor={!flying}
+              header={winner ? winnerHeader(winner, 40, 20) : undefined}
+            />
           </Frame>
-          <TermButton label="▶ SPIN" glowBox height={58} fontSize={30} style={styles.spin} />
+          {winner ? (
+            <View style={styles.actions}>
+              <ActionRow
+                source={winner.source}
+                title={winner.title}
+                onOpen={actions.open}
+                onDone={actions.done}
+                onRemove={actions.remove}
+                onAgain={actions.spin}
+              />
+            </View>
+          ) : (
+            <TermButton
+              label={flying ? '◌ IN FLIGHT …' : '▶ SPIN'}
+              glowBox={!flying}
+              disabled={flying}
+              onPress={actions.spin}
+              height={58}
+              fontSize={30}
+              style={styles.spin}
+              accessibilityLabel={flying ? 'Bee in flight' : 'Spin'}
+            />
+          )}
         </>
       ) : tab === 'today' ? (
         <View style={styles.panel}>
-          <TodayList flowers={board.flowers} excluded={board.excluded} onToggle={board.toggle} />
+          <TodayList
+            flowers={board.flowers}
+            excluded={board.excluded}
+            onToggle={actions.toggle}
+            highlightId={winner?.id}
+          />
         </View>
       ) : (
         <View style={styles.panel}>
@@ -72,5 +112,6 @@ const styles = StyleSheet.create({
   comb: { flex: 1, minHeight: 200 },
   log: { height: 206, marginTop: 8 },
   spin: { marginHorizontal: 18, marginTop: 14, marginBottom: 6 },
+  actions: { marginTop: 14, marginBottom: 8 },
   panel: { flex: 1, paddingTop: 10, minHeight: 0 },
 });

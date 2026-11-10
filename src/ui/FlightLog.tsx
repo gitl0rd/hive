@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 
+import { lateTag } from '../domain/labels';
 import { a, colors, fonts, glow, noGlow } from './theme';
 
 export const LANDED_MARK = 'LANDED:';
@@ -52,7 +53,8 @@ export function FlightLog({
                 landed ? styles.inverse : { opacity: 0.45 + (0.55 * (k + 1)) / visible.length },
               ]}
             >
-              {t}
+              {/* keep the log's indentation: plain spaces collapse in Text on web */}
+              {t.replace(/ /g, '\u00A0')}
             </Text>
           );
         })}
@@ -62,6 +64,21 @@ export function FlightLog({
       </View>
     </View>
   );
+}
+
+/** Big winner name + 'MEGA DOG · 2D LATE' at the top of the flight log. */
+export function winnerHeader(
+  f: { title: string; projectName: string; daysLate?: number },
+  titleSize: number,
+  subSize: number,
+) {
+  const late = lateTag(f.daysLate);
+  return {
+    title: f.title.toUpperCase(),
+    sub: f.projectName.toUpperCase() + (late ? ` · ${late.slice(1)} LATE` : ''),
+    titleSize,
+    subSize,
+  };
 }
 
 const styles = StyleSheet.create({
