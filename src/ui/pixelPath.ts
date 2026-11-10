@@ -96,34 +96,3 @@ export function pathCells(d: string, w: number, h: number, cw: number, ch = cw):
 export function pixelatePath(d: string, w: number, h: number, cell: number): [number, number][] {
   return pathCells(d, w, h, cell).map((p) => [p.c, p.r]);
 }
-
-/** An ASCII stroke for a direction: - | / \ (y down). */
-export function asciiFor(angle: number): string {
-  let a = ((angle % Math.PI) + Math.PI) % Math.PI; // fold to 0..π
-  if (a > Math.PI / 2) a -= Math.PI; // -π/2..π/2
-  const deg = (a * 180) / Math.PI;
-  if (Math.abs(deg) < 22) return '-';
-  if (Math.abs(deg) > 68) return '|';
-  return deg > 0 ? '\\' : '/';
-}
-
-/** Cells next to (but not on) the given cells, for a glow halo. Wraps like the tile. */
-export function haloCells(
-  cells: [number, number][],
-  cols: number,
-  rows: number,
-): [number, number][] {
-  const on = new Set(cells.map(([c, r]) => `${c},${r}`));
-  const out = new Map<string, [number, number]>();
-  for (const [c, r] of cells) {
-    for (let dc = -1; dc <= 1; dc++) {
-      for (let dr = -1; dr <= 1; dr++) {
-        const nc = (c + dc + cols) % cols;
-        const nr = (r + dr + rows) % rows;
-        const k = `${nc},${nr}`;
-        if (!on.has(k)) out.set(k, [nc, nr]);
-      }
-    }
-  }
-  return [...out.values()];
-}

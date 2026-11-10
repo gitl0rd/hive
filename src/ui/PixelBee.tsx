@@ -25,11 +25,23 @@ export function PixelBee({ x, y, px, flip = false, color }: Props) {
     ? `translate(${x + w / 2} ${y - h / 2}) scale(${-px} ${px})`
     : `translate(${x - w / 2} ${y - h / 2}) scale(${px})`;
   const fill = { B: body, W: t.wing, s: t.bg } as const;
+  const runs = spriteRuns(sprite);
   return (
     <G transform={transform} testID="pixel-bee">
-      {/* glow halo */}
-      <Rect x={0.5} y={1.5} width={sprite.w - 1} height={sprite.h - 1} fill={body} opacity={0.12} />
-      {spriteRuns(sprite).map((r) => (
+      {/* glow halo: the sprite's own outline, one pixel wider. Group opacity so overlaps don't stack. */}
+      <G opacity={0.12}>
+        {runs.map((r) => (
+          <Rect
+            key={`h${r.x}-${r.y}`}
+            x={r.x - 0.5}
+            y={r.y - 0.5}
+            width={r.w + 1}
+            height={2}
+            fill={body}
+          />
+        ))}
+      </G>
+      {runs.map((r) => (
         <Rect
           key={`${r.x}-${r.y}`}
           x={r.x}
