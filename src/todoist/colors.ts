@@ -25,8 +25,14 @@ export const TODOIST_COLORS = {
 
 export type TodoistColorName = keyof typeof TODOIST_COLORS;
 
-/** Colours below this relative luminance get lightened (charcoal #808080 -> ~#9A9A9A). */
+/**
+ * A colour is "too dark for the near-black background" when its relative luminance is below
+ * MIN_LUMINANCE *and* its HSL lightness is below MIN_LIGHTNESS. Those get their lightness raised
+ * to MIN_LIGHTNESS, keeping hue and saturation. This matches the K design: charcoal #808080 ->
+ * #999999, while magenta #E05194 stays as is and vivid-but-dark-ish colours like yellow are untouched.
+ */
 export const MIN_LUMINANCE = 0.32;
+export const MIN_LIGHTNESS = 0.6;
 
 const FALLBACK = TODOIST_COLORS.grey;
 
@@ -80,18 +86,15 @@ function hslToRgb([h, s, l]: [number, number, number]): RGB {
   return [hue(h + 1 / 3) * 255, hue(h) * 255, hue(h - 1 / 3) * 255];
 }
 
-/** Raise HSL lightness (keeping hue and saturation) until luminance >= minLuminance. */
-export function brighten(hex: string, minLuminance = MIN_LUMINANCE): string {
-  if (relativeLuminance(hex) >= minLuminance) return hex.toLowerCase();
-  const [h, s, l0] = rgbToHsl(hexToRgb(hex));
-  let lo = l0;
-  let hi = 1;
-  for (let i = 0; i < 24; i++) {
-    const mid = (lo + hi) / 2;
-    if (relativeLuminance(rgbToHex(hslToRgb([h, s, mid]))) >= minLuminance) hi = mid;
-    else lo = mid;
-  }
-  return rgbToHex(hslToRgb([h, s, hi]));
+export function hslLightness(hex: string): number {
+  return rgbToHsl(hexToRgb(hex))[2];
+}
+
+/** Raise HSL lightness to MIN_LIGHTNESS for colours too dark for the background (see above). */
+export function brighten(hex: string): string {
+  const [h, sat, l] = rgbToHsl(hexToRgb(hex));
+  if (relativeLuminance(hex) >= MIN_LUMINANCE || l >= MIN_LIGHTNESS) return hex.toLowerCase();
+  return rgbToHex(hslToRgb([h, sat, MIN_LIGHTNESS]));
 }
 
 /** Todoist colour name -> display hex for the dark board. Unknown names fall back to grey. */

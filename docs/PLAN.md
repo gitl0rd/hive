@@ -201,7 +201,7 @@ hiveColor screen    (Hive-only tasks use the screen colour)
 fonts     display: VT323   body/log: Share Tech Mono
 glow      text-shadow 0 0 6px rgba(screen,0.55)
 ```
-Project colours: map Todoist names → hex, then brighten any colour whose relative luminance is too low for a near-black background (e.g. charcoal #808080 → ~#9A9A9A).
+Project colours: map Todoist names → hex, then brighten colours too dark for a near-black background: relative luminance < 0.32 **and** HSL lightness < 0.6 → raise lightness to 0.6, keeping hue/saturation (charcoal #808080 → #999999; magenta stays #E05194 as in the design).
 `berry_red #b8256f, red #db4035, orange #ff9933, yellow #fad000, olive_green #afb83b, lime_green #7ecc49, green #299438, mint_green #6accbc, teal #158fad, sky_blue #14aaf5, light_blue #96c3eb, blue #4073ff, grape #884dff, violet #af38eb, lavender #eb96eb, magenta #e05194, salmon #ff8d85, charcoal #808080, grey #b8b8b8, taupe #ccac93`
 
 CRT overlay (pointer-events none, above everything): horizontal scanlines (1px dark every 3px, ~26% black), radial vignette to ~55% black at the edges, rounded bezel (radius ~30) with a faint inner glow. On native, render scanlines as an SVG pattern or a repeated image; don't block touches.

@@ -1,6 +1,9 @@
 import {
   brighten,
   displayColor,
+  hexToRgb,
+  hslLightness,
+  MIN_LIGHTNESS,
   MIN_LUMINANCE,
   relativeLuminance,
   TODOIST_COLORS,
@@ -17,12 +20,29 @@ describe('todoist colours', () => {
 
   it('every display colour is bright enough for the dark background', () => {
     for (const name of Object.keys(TODOIST_COLORS)) {
-      expect(relativeLuminance(displayColor(name))).toBeGreaterThanOrEqual(MIN_LUMINANCE - 0.005);
+      const c = displayColor(name);
+      const ok = relativeLuminance(c) >= MIN_LUMINANCE || hslLightness(c) >= MIN_LIGHTNESS - 0.005;
+      expect({ name, c, ok }).toEqual({ name, c, ok: true });
+    }
+  });
+
+  it('keeps magenta as in the K design (#E05194)', () => {
+    const got = hexToRgb(displayColor('magenta'));
+    const want = hexToRgb('#e05194');
+    got.forEach((v, i) => expect(Math.abs(v - want[i])).toBeLessThanOrEqual(2));
+  });
+
+  it('lifts genuinely dark colours (green, teal, berry red)', () => {
+    for (const name of ['green', 'teal', 'berry_red'] as const) {
+      expect(relativeLuminance(displayColor(name))).toBeGreaterThan(
+        relativeLuminance(TODOIST_COLORS[name]),
+      );
     }
   });
 
   it('leaves already-bright colours alone', () => {
     expect(displayColor('yellow')).toBe('#fad000');
+    expect(displayColor('blue')).toBe('#4073ff');
     expect(displayColor('grey')).toBe('#b8b8b8');
     expect(brighten('#FFFFFF')).toBe('#ffffff');
   });

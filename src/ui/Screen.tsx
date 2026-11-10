@@ -1,40 +1,30 @@
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, fonts, glow, layout } from './theme';
+import { Crt, CrtBackdrop } from './Crt';
+import { DesktopLayout } from './DesktopLayout';
+import { MobileLayout } from './MobileLayout';
+import { colors, layout, sizes } from './theme';
+import { useSampleBoard } from './useSampleBoard';
 
-/** Placeholder shell for M1. M3 swaps in MobileLayout / DesktopLayout by width. */
+/** Picks the mobile or desktop layout by width, under the CRT overlay. */
 export function Screen() {
   const { width } = useWindowDimensions();
-  const mode = width >= layout.desktopMinWidth ? 'DESKTOP' : 'MOBILE';
+  const desktop = width >= layout.desktopMinWidth;
+  const board = useSampleBoard();
+
   return (
     <View style={styles.root}>
-      <Text style={styles.title}>HIVE·OS</Text>
-      <Text style={styles.sub}>
-        {'>'} BOOT OK · {mode} · {Math.round(width)}PX
-      </Text>
-      <Text style={styles.sub}>NO FLOWERS. ADD ONE OR SYNC.</Text>
+      <CrtBackdrop />
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
+        {desktop ? <DesktopLayout board={board} /> : <MobileLayout board={board} />}
+      </SafeAreaView>
+      <Crt size={desktop ? sizes.desktop : sizes.mobile} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.bg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 64,
-    color: colors.screen,
-    ...glow,
-  },
-  sub: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.dimText,
-    ...glow,
-  },
+  root: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
 });
