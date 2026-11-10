@@ -12,7 +12,9 @@ import { Frame } from './Frame';
 import { History } from './History';
 import { FrameTabs } from './Tabs';
 import { TodayList } from './TodayList';
-import { colors, fonts, glow, layout, sizes } from './theme';
+import type { ThemeTokens } from '../themes';
+import { fonts, layout, sizes } from './theme';
+import { useTheme, useThemedStyles } from './ThemeContext';
 import type { Chrome } from './MobileLayout';
 import type { BoardModel } from './useBoard';
 
@@ -20,6 +22,9 @@ type Tab = 'today' | 'history';
 
 /** K desktop (≥ 900px). Below ~1000px the right column wraps under the comb. */
 export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Chrome }) {
+  const t = useTheme();
+  const words = t.theme.words;
+  const styles = useThemedStyles(makeStyles);
   const [tab, setTab] = useState<Tab>('today');
   const { width, height } = useWindowDimensions();
   const wrapped = width < layout.desktopWrapWidth;
@@ -27,8 +32,8 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
   const { spin, winner, actions } = board;
   const flying = spin.phase === 'flying';
   const nothingToSpin = board.counts.flowers === 0;
-  const spinLabel = flying ? '◌ IN FLIGHT …' : nothingToSpin ? 'NOTHING TO SPIN' : '▶ SPIN';
-  const phaseTag = flying ? '◌ IN FLIGHT' : winner ? '■ LANDED' : '● READY';
+  const spinLabel = flying ? words.spinning : nothingToSpin ? words.nothingToSpin : words.spin;
+  const phaseTag = flying ? words.phase.flying : winner ? words.phase.landed : words.phase.ready;
   const tabs = [
     { id: 'today' as const, label: `TODAY · ${pad2(board.counts.flowers)}` },
     { id: 'history' as const, label: 'HISTORY' },
@@ -42,7 +47,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
     <>
       <View style={styles.header}>
         <Text style={styles.brand}>
-          HIVE·OS <Text style={{ opacity: 0.55 }}>{'// DAILY SPIN'}</Text>
+          {words.brand} <Text style={{ opacity: 0.55 }}>{'// DAILY SPIN'}</Text>
         </Text>
         {/* Right side of the header is reserved (owner has plans for it). */}
         <View style={styles.headerRight} />
@@ -50,7 +55,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
 
       <View style={[styles.main, wrapped ? styles.mainWrapped : null]}>
         <Frame
-          title="COMB.SYS"
+          title={words.comb}
           right={phaseTag}
           bottomRight={
             board.flowers.length > 0 ? (
@@ -64,7 +69,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
           }
           tagSize={22}
           style={[styles.combWin, wrapped ? styles.combWinWrapped : null]}
-          accessibilityLabel="Comb"
+          accessibilityLabel={words.a11y.comb}
         >
           <View style={styles.combArea}>
             <Comb
@@ -74,9 +79,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
               size={size}
               spin={spin}
               emptyMessage={
-                board.ready && board.flowers.length === 0
-                  ? 'NO FLOWERS. ADD ONE OR SYNC.'
-                  : undefined
+                board.ready && board.flowers.length === 0 ? words.emptyBoard : undefined
               }
             />
           </View>
@@ -103,7 +106,11 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
               fontSize={30}
               style={styles.spin}
               accessibilityLabel={
-                flying ? 'Bee in flight' : nothingToSpin ? 'Nothing to spin' : 'Spin'
+                flying
+                  ? words.a11y.inFlight
+                  : nothingToSpin
+                    ? words.a11y.nothingToSpin
+                    : words.a11y.spin
               }
             />
           )}
@@ -130,7 +137,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
               <History landings={board.history} fontSize={24} onDelete={actions.deleteLanding} />
             )}
           </Frame>
-          <Frame title="FLIGHT.LOG" tagSize={22} style={{ height: logHeight }}>
+          <Frame title={words.log} tagSize={22} style={{ height: logHeight }}>
             <FlightLog
               lines={board.log}
               fontSize={14}
@@ -142,7 +149,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
       </View>
 
       <Footer
-        label={chrome.demo ? 'HIVE·OS v2 · DEMO' : 'HIVE·OS v2'}
+        label={`${words.brand} v2${chrome.demo ? ' · DEMO' : ''}`}
         onSettings={chrome.onSettings}
         flowers={board.flowers}
         included={board.included}
@@ -162,43 +169,44 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  root: { paddingHorizontal: 40, paddingTop: 32, paddingBottom: 28, gap: 26 },
-  header: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    borderBottomWidth: 2,
-    borderBottomColor: colors.screen,
-    paddingBottom: 10,
-  },
-  brand: {
-    fontFamily: fonts.display,
-    fontSize: 40,
-    letterSpacing: 3,
-    color: colors.screen,
-    ...glow,
-  },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 24 },
-  main: { flex: 1, flexDirection: 'row', gap: 28, minHeight: 0 },
-  mainWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', flexDirection: 'column' },
-  combWin: {
-    flex: 1.6,
-    minWidth: 0,
-    paddingTop: 36,
-    paddingHorizontal: 28,
-    paddingBottom: 28,
-    gap: 24,
-    alignItems: 'center',
-  },
-  combWinWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', height: 640 },
-  combArea: { flex: 1, alignSelf: 'stretch' },
-  spin: { width: '100%', maxWidth: 560 },
-  right: { flex: 1, minWidth: 360, gap: 28 },
-  rightWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', minWidth: 0 },
-  listWin: { flex: 1, minHeight: 0, paddingTop: 30, paddingHorizontal: 16, paddingBottom: 16 },
-  listWinWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', height: 560 },
-});
+const makeStyles = (t: ThemeTokens) =>
+  StyleSheet.create({
+    scroll: { flex: 1 },
+    root: { paddingHorizontal: 40, paddingTop: 32, paddingBottom: 28, gap: 26 },
+    header: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      borderBottomWidth: 2,
+      borderBottomColor: t.screen,
+      paddingBottom: 10,
+    },
+    brand: {
+      fontFamily: fonts.display,
+      fontSize: 40,
+      letterSpacing: 3,
+      color: t.screen,
+      ...t.glow,
+    },
+    headerRight: { flexDirection: 'row', alignItems: 'center', gap: 24 },
+    main: { flex: 1, flexDirection: 'row', gap: 28, minHeight: 0 },
+    mainWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', flexDirection: 'column' },
+    combWin: {
+      flex: 1.6,
+      minWidth: 0,
+      paddingTop: 36,
+      paddingHorizontal: 28,
+      paddingBottom: 28,
+      gap: 24,
+      alignItems: 'center',
+    },
+    combWinWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', height: 640 },
+    combArea: { flex: 1, alignSelf: 'stretch' },
+    spin: { width: '100%', maxWidth: 560 },
+    right: { flex: 1, minWidth: 360, gap: 28 },
+    rightWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', minWidth: 0 },
+    listWin: { flex: 1, minHeight: 0, paddingTop: 30, paddingHorizontal: 16, paddingBottom: 16 },
+    listWinWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', height: 560 },
+  });

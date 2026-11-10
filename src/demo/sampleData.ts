@@ -1,9 +1,8 @@
 // Sample board for Demo mode and for building the UI before Todoist is wired up.
 
 import type { Flower, Landing } from '../domain/types';
-import { HIVE_PROJECT_KEY } from '../domain/types';
+import { HIVE_COLOR, HIVE_PROJECT_KEY } from '../domain/types';
 import { displayColor } from '../todoist/colors';
-import { colors } from '../ui/theme';
 
 export const sampleDone = 2;
 export const sampleSeed = 11;
@@ -31,7 +30,7 @@ const hive = (id: string, title: string): Flower => ({
   title,
   projectKey: HIVE_PROJECT_KEY,
   projectName: 'Hive',
-  color: colors.hive,
+  color: HIVE_COLOR,
 });
 
 export const sampleTodoistFlowers: Flower[] = [
@@ -75,7 +74,7 @@ export const sampleHistory: Landing[] = [
     flowerId: 'hive:4',
     title: 'Gym',
     projectName: 'Hive',
-    color: colors.hive,
+    color: HIVE_COLOR,
     at: '2026-11-10T07:15:00',
   },
 ];

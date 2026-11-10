@@ -4,9 +4,11 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Mode } from '../store/settings';
 import { TermButton } from './Button';
 import { Frame } from './Frame';
-import { colors, fonts, glow } from './theme';
+import { THEMES, type ThemeId, type ThemeTokens } from '../themes';
+import { fonts } from './theme';
+import { useThemedStyles } from './ThemeContext';
 
-/** Settings (cog in the footer): replace/forget the token, switch Demo ↔ Todoist, haptics. */
+/** Settings (cog in the footer): theme, replace/forget the token, switch Demo ↔ Todoist, haptics. */
 export function SettingsPanel({
   mode,
   haptics,
@@ -14,6 +16,8 @@ export function SettingsPanel({
   reducedMotion,
   osReduceMotion,
   onReducedMotion,
+  theme,
+  onTheme,
   onReplaceToken,
   onForgetToken,
   onLeaveDemo,
@@ -25,11 +29,14 @@ export function SettingsPanel({
   reducedMotion: boolean;
   osReduceMotion: boolean;
   onReducedMotion: (on: boolean) => void;
+  theme: ThemeId;
+  onTheme: (id: ThemeId) => void;
   onReplaceToken: () => void;
   onForgetToken: () => void;
   onLeaveDemo: () => void;
   onClose: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   const [confirmForget, setConfirmForget] = useState(false);
 
   return (
@@ -64,6 +71,32 @@ export function SettingsPanel({
         ) : (
           <TermButton label="[ CONNECT TODOIST ]" onPress={onLeaveDemo} height={48} fontSize={22} />
         )}
+
+        <View accessibilityRole="radiogroup" accessibilityLabel="Theme" style={styles.group}>
+          <Text style={styles.line}>THEME:</Text>
+          {THEMES.map((th) => {
+            const on = th.id === theme;
+            return (
+              <Pressable
+                key={th.id}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: on }}
+                accessibilityLabel={`${th.name} theme`}
+                onPress={() => onTheme(th.id)}
+                style={styles.toggle}
+                testID={`theme-${th.id}`}
+              >
+                <Text style={styles.line}>
+                  {on ? '(•)' : '( )'} {th.name}
+                </Text>
+                <Text style={styles.note}>
+                  {'    '}
+                  {th.blurb}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <Pressable
           accessibilityRole="checkbox"
@@ -103,30 +136,32 @@ export function SettingsPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(11,6,0,0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 22,
-  },
-  win: {
-    width: '100%',
-    maxWidth: 520,
-    paddingTop: 28,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 12,
-    backgroundColor: colors.bg,
-  },
-  line: {
-    fontFamily: fonts.display,
-    fontSize: 22,
-    color: colors.screen,
-    letterSpacing: 1,
-    ...glow,
-  },
-  note: { fontFamily: fonts.display, fontSize: 18, color: colors.screen, opacity: 0.7, ...glow },
-  toggle: { minHeight: 44, justifyContent: 'center' },
-});
+const makeStyles = (t: ThemeTokens) =>
+  StyleSheet.create({
+    backdrop: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: t.bgA(0.92),
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 22,
+    },
+    win: {
+      width: '100%',
+      maxWidth: 520,
+      paddingTop: 28,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 12,
+      backgroundColor: t.bg,
+    },
+    line: {
+      fontFamily: fonts.display,
+      fontSize: 22,
+      color: t.screen,
+      letterSpacing: 1,
+      ...t.glow,
+    },
+    note: { fontFamily: fonts.display, fontSize: 18, color: t.screen, opacity: 0.7, ...t.glow },
+    group: { gap: 2 },
+    toggle: { minHeight: 44, justifyContent: 'center' },
+  });

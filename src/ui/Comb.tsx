@@ -15,8 +15,10 @@ import {
 import { lateTag, wrapLabel } from '../domain/labels';
 import { SPIN } from '../domain/spinPlan';
 import type { Flower } from '../domain/types';
-import { BEE_GRID, PixelBee } from './PixelBee';
-import { a, colors, DISPLAY_CHAR_WIDTH_EM, fonts, type SizeSet } from './theme';
+import { itemColor, type ThemeTokens } from '../themes';
+import { PixelBee } from './PixelBee';
+import { DISPLAY_CHAR_WIDTH_EM, fonts, type SizeSet } from './theme';
+import { useTheme, useThemedStyles } from './ThemeContext';
 import type { SpinView } from './useBoard';
 
 export interface CombProps {
@@ -52,6 +54,8 @@ export function Comb({
   spin = IDLE_VIEW,
   emptyMessage,
 }: CombProps) {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [area, setArea] = useState({ w: 0, h: 0 });
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -65,8 +69,8 @@ export function Comb({
     return { byId, edges, bounds: b };
   }, [flowers, layout, size.cellWidth]);
 
-  const beeW = BEE_GRID.w * size.beePx;
-  const beeH = BEE_GRID.h * size.beePx;
+  const beeW = t.theme.sprite.w * size.beePx;
+  const beeH = t.theme.sprite.h * size.beePx;
   const reserveForBee = beeH + 16;
   const { bounds } = board;
   const bw = bounds.width + size.boardPad * 2;
@@ -121,7 +125,7 @@ export function Comb({
       testID="comb"
       accessible
       accessibilityRole="image"
-      accessibilityLabel={combSummary(flowers, excluded, spin, layout)}
+      accessibilityLabel={combSummary(flowers, excluded, spin, layout, t)}
     >
       {emptyMessage ? (
         <View style={styles.empty}>
@@ -139,6 +143,7 @@ export function Comb({
               const opacity = isDim(f) ? 0.3 : landed && !isWin ? 0.45 : 1;
               return (
                 <Cell
+                  t={t}
                   text={text}
                   key={f.id}
                   flower={f}
@@ -158,6 +163,7 @@ export function Comb({
                 y: c.y + (pt.y - c.y) * EDGE_INSET,
               }));
               const dim = isDim(f) || (landed && spin.winner !== e.cellIndex);
+              const color = itemColor(e.color, f.source === 'hive', t);
               return (
                 <G key={`${e.cellIndex}-${e.dir}`} opacity={dim ? 0.3 : 1}>
                   <Line
@@ -165,7 +171,7 @@ export function Comb({
                     y1={p.y}
                     x2={q.x}
                     y2={q.y}
-                    stroke={e.color}
+                    stroke={color}
                     strokeWidth={size.edge * 3}
                     strokeOpacity={0.22}
                     strokeLinecap="round"
@@ -175,7 +181,7 @@ export function Comb({
                     y1={p.y}
                     x2={q.x}
                     y2={q.y}
-                    stroke={e.color}
+                    stroke={color}
                     strokeWidth={size.edge}
                   />
                 </G>
@@ -186,7 +192,7 @@ export function Comb({
             <Polyline
               key={`trail-${k}`}
               points={`${p.x},${p.y} ${q.x},${q.y}`}
-              stroke={colors.screen}
+              stroke={t.trailA(1)}
               strokeOpacity={0.2 + (0.7 * (k + 1)) / trailSegs.length}
               strokeWidth={3}
               strokeDasharray="0.1 7"
@@ -207,14 +213,16 @@ function combSummary(
   excluded: ReadonlySet<string>,
   spin: SpinView,
   layout: BoardLayout,
+  t: ThemeTokens,
 ): string {
-  if (spin.phase === 'flying') return 'Comb. The bee is in flight.';
+  const w = t.theme.words;
+  if (spin.phase === 'flying') return `${w.a11y.comb}. ${w.a11y.inFlight}.`;
   if (spin.phase === 'landed' && spin.winner >= 0) {
     const f = flowers.find((x) => x.id === layout.cells[spin.winner]?.flowerId);
-    if (f) return `Comb. The bee landed on ${f.title}, ${f.projectName}.`;
+    if (f) return `${w.a11y.comb}. ${w.a11y.landedOn(f.title, f.projectName)}`;
   }
   const on = flowers.filter((f) => !excluded.has(f.id) && !f.goneFromTodoist).length;
-  return `Comb with ${flowers.length} flower${flowers.length === 1 ? '' : 's'}, ${on} in today's spin.`;
+  return `${w.a11y.comb} with ${flowers.length} ${flowers.length === 1 ? w.item : w.items}, ${on} in today's spin.`;
 }
 
 type CellState = 'idle' | 'bee' | 'winner';
@@ -243,6 +251,7 @@ export function labelMetrics(size: SizeSet, scale: number): LabelMetrics {
 }
 
 function Cell({
+  t,
   text,
   flower,
   center,
@@ -251,6 +260,7 @@ function Cell({
   struck,
   state,
 }: {
+  t: ThemeTokens;
   text: LabelMetrics;
   flower: Flower;
   center: Point;
@@ -280,20 +290,14 @@ function Cell({
   const top = center.y - blockH / 2;
 
   const isWin = state === 'winner';
-  const textColor = isWin ? colors.bg : colors.screen;
-  const fill = isWin ? colors.screen : state === 'bee' ? '#2A1A05' : colors.bg; // bee: screen @ ~14% over bg
-  const stroke = state === 'idle' ? colors.dimRing : colors.screen;
+  const textColor = isWin ? t.bg : t.screen;
+  const fill = isWin ? t.screen : state === 'bee' ? t.beeCell : t.bg;
+  const stroke = state === 'idle' ? t.dimRing : t.screen;
 
   return (
     <G opacity={opacity}>
       {isWin ? (
-        <Polygon
-          points={pts}
-          fill="none"
-          stroke={colors.screen}
-          strokeWidth={16}
-          strokeOpacity={0.25}
-        />
+        <Polygon points={pts} fill="none" stroke={t.screen} strokeWidth={16} strokeOpacity={0.25} />
       ) : null}
       <Polygon points={pts} fill={fill} stroke={stroke} strokeWidth={1.5} />
       {lines.map((ln, k) => {
@@ -308,7 +312,7 @@ function Cell({
                 fontSize={text.label}
                 textAnchor="middle"
                 fill="none"
-                stroke={a(0.35)}
+                stroke={t.a(0.35)}
                 strokeWidth={3}
               >
                 {ln}
@@ -354,22 +358,23 @@ function Cell({
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, alignSelf: 'stretch', minHeight: 120 },
-  empty: {
-    ...StyleSheet.absoluteFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  emptyText: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    letterSpacing: 2,
-    color: colors.screen,
-    opacity: 0.8,
-    textAlign: 'center',
-    textShadowColor: a(0.55),
-    textShadowRadius: 6,
-  },
-});
+const makeStyles = (t: ThemeTokens) =>
+  StyleSheet.create({
+    fill: { flex: 1, alignSelf: 'stretch', minHeight: 120 },
+    empty: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+    },
+    emptyText: {
+      fontFamily: fonts.display,
+      fontSize: 24,
+      letterSpacing: 2,
+      color: t.screen,
+      opacity: 0.8,
+      textAlign: 'center',
+      textShadowColor: t.a(0.55),
+      textShadowRadius: 6,
+    },
+  });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,7 +8,9 @@ import { syncFailureReason } from '../store/useHive';
 import { validateToken } from '../todoist/api';
 import { Crt, CrtBackdrop } from './Crt';
 import { Screen } from './Screen';
-import { colors, layout, sizes } from './theme';
+import { applyAppIcon } from './appIcon';
+import { layout, sizes } from './theme';
+import { ThemeProvider, useTheme } from './ThemeContext';
 import { type ConnectResult, TokenSetup } from './TokenSetup';
 
 type View_ = 'loading' | 'setup' | 'board';
@@ -34,6 +36,11 @@ export function AppRoot() {
       setView(s.mode === 'demo' || (s.mode === 'todoist' && t) ? 'board' : 'setup');
     })();
   }, []);
+
+  // The app icon follows the theme (web favicon now; Android launcher icon in a native build).
+  useEffect(() => {
+    if (view !== 'loading') applyAppIcon(settings.theme);
+  }, [settings.theme, view]);
 
   const updateSettings = (s: Settings) => {
     setSettings(s);
@@ -69,41 +76,53 @@ export function AppRoot() {
   };
 
   return (
-    <View style={styles.root}>
-      <CrtBackdrop />
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-        {view === 'setup' ? (
-          <TokenSetup
-            onConnect={connect}
-            onDemo={settings.mode === 'demo' ? undefined : demo}
-            onCancel={canCancel ? () => setView('board') : undefined}
-          />
-        ) : view === 'board' && settings.mode ? (
-          <Screen
-            // Remount (fresh state + storage namespace) when switching mode or token
-            key={`${settings.mode}:${token ?? ''}`}
-            mode={settings.mode}
-            token={token}
-            settings={settings}
-            onSettingsChange={updateSettings}
-            onReplaceToken={() => {
-              setCanCancel(true);
-              setView('setup');
-            }}
-            onForgetToken={forget}
-            onLeaveDemo={() => {
-              setCanCancel(true);
-              setView('setup');
-            }}
-          />
-        ) : null}
-      </SafeAreaView>
+    <ThemeProvider id={settings.theme}>
+      <Themed desktop={desktop}>
+        <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
+          {view === 'setup' ? (
+            <TokenSetup
+              onConnect={connect}
+              onDemo={settings.mode === 'demo' ? undefined : demo}
+              onCancel={canCancel ? () => setView('board') : undefined}
+            />
+          ) : view === 'board' && settings.mode ? (
+            <Screen
+              // Remount (fresh state + storage namespace) when switching mode or token
+              key={`${settings.mode}:${token ?? ''}`}
+              mode={settings.mode}
+              token={token}
+              settings={settings}
+              onSettingsChange={updateSettings}
+              onReplaceToken={() => {
+                setCanCancel(true);
+                setView('setup');
+              }}
+              onForgetToken={forget}
+              onLeaveDemo={() => {
+                setCanCancel(true);
+                setView('setup');
+              }}
+            />
+          ) : null}
+        </SafeAreaView>
+      </Themed>
+    </ThemeProvider>
+  );
+}
+
+/** Background, backdrop pattern and CRT overlay around the content, in the active theme. */
+function Themed({ desktop, children }: { desktop: boolean; children: ReactNode }) {
+  const t = useTheme();
+  return (
+    <View style={[styles.root, { backgroundColor: t.bg }]}>
+      <CrtBackdrop desktop={desktop} />
+      {children}
       <Crt size={desktop ? sizes.desktop : sizes.mobile} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1 },
   safe: { flex: 1 },
 });

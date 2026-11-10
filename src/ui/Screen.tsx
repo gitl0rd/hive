@@ -58,6 +58,8 @@ export function Screen(props: ScreenProps) {
           reducedMotion={settings.reducedMotion}
           osReduceMotion={osReduceMotion}
           onReducedMotion={(on) => props.onSettingsChange({ ...settings, reducedMotion: on })}
+          theme={settings.theme}
+          onTheme={(id) => props.onSettingsChange({ ...settings, theme: id })}
           onReplaceToken={() => {
             setCfgOpen(false);
             props.onReplaceToken();

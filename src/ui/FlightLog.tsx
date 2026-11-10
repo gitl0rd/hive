@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 
 import { lateTag } from '../domain/labels';
-import { a, colors, fonts, glow, noGlow } from './theme';
+import { themeLogLine, type ThemeTokens } from '../themes';
+import { fonts } from './theme';
+import { useTheme, useThemedStyles } from './ThemeContext';
 
 export const LANDED_MARK = 'LANDED:';
 
 /**
  * Log lines anchored to the bottom; older lines fade. A line containing 'LANDED:' renders inverse.
+ * Lines are stored in hive words and shown in the active theme's words.
  * Optional header (the winner's name, big) at the top.
  */
 export function FlightLog({
@@ -21,6 +24,8 @@ export function FlightLog({
   showCursor?: boolean;
   header?: { title: string; sub: string; titleSize: number; subSize: number };
 }) {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const lineH = Math.round(fontSize * 1.48);
   const [h, setH] = useState(0);
   const [w, setW] = useState(0);
@@ -53,9 +58,9 @@ export function FlightLog({
           </Text>
         </View>
       ) : null}
-      <View style={styles.lines} accessibilityLabel="Flight log">
-        {visible.map((t, k) => {
-          const landed = t.includes(LANDED_MARK);
+      <View style={styles.lines} accessibilityLabel={t.theme.words.a11y.log}>
+        {visible.map((line, k) => {
+          const landed = line.includes(LANDED_MARK);
           return (
             <Text
               key={`${lines.length - visible.length + k}`}
@@ -67,7 +72,7 @@ export function FlightLog({
               ]}
             >
               {/* keep the log's indentation: plain spaces collapse in Text on web */}
-              {t.replace(/ /g, '\u00A0')}
+              {themeLogLine(line, t.theme).replace(/ /g, '\u00A0')}
             </Text>
           );
         })}
@@ -94,25 +99,26 @@ export function winnerHeader(
   };
 }
 
-const styles = StyleSheet.create({
-  box: { flex: 1, overflow: 'hidden', paddingHorizontal: 12, paddingTop: 16, paddingBottom: 10 },
-  header: { gap: 2, marginBottom: 6 },
-  big: { fontFamily: fonts.display, color: colors.screen, lineHeight: undefined, ...glow },
-  sub: {
-    fontFamily: fonts.display,
-    color: colors.screen,
-    opacity: 0.7,
-    letterSpacing: 1.5,
-    ...glow,
-  },
-  lines: { flex: 1, justifyContent: 'flex-end' },
-  line: { fontFamily: fonts.body, color: colors.screen, ...glow },
-  inverse: {
-    backgroundColor: colors.screen,
-    color: colors.bg,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 4,
-    ...noGlow,
-  },
-  cursor: { backgroundColor: colors.screen, marginTop: 2, boxShadow: `0 0 6px ${a(0.7)}` },
-});
+const makeStyles = (t: ThemeTokens) =>
+  StyleSheet.create({
+    box: { flex: 1, overflow: 'hidden', paddingHorizontal: 12, paddingTop: 16, paddingBottom: 10 },
+    header: { gap: 2, marginBottom: 6 },
+    big: { fontFamily: fonts.display, color: t.screen, lineHeight: undefined, ...t.glow },
+    sub: {
+      fontFamily: fonts.display,
+      color: t.screen,
+      opacity: 0.7,
+      letterSpacing: 1.5,
+      ...t.glow,
+    },
+    lines: { flex: 1, justifyContent: 'flex-end' },
+    line: { fontFamily: fonts.body, color: t.screen, ...t.glow },
+    inverse: {
+      backgroundColor: t.screen,
+      color: t.bg,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 4,
+      ...t.noGlow,
+    },
+    cursor: { backgroundColor: t.screen, marginTop: 2, boxShadow: `0 0 6px ${t.a(0.7)}` },
+  });
