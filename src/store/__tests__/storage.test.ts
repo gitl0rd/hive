@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { freshDay } from '../../domain/day';
-import { KEYS, loadAll, save } from '../storage';
+import { KEYS, loadAll, save, saver } from '../storage';
 
 // AsyncStorage is mapped to its official in-memory mock in the Jest config (package.json).
 
@@ -11,7 +11,13 @@ beforeEach(async () => {
 
 describe('storage', () => {
   it('loads empty defaults on first run', async () => {
-    await expect(loadAll()).resolves.toEqual({ tasks: [], history: [], day: null, problems: [] });
+    await expect(loadAll()).resolves.toEqual({
+      tasks: [],
+      history: [],
+      day: null,
+      problems: [],
+      empty: true,
+    });
   });
 
   it('round-trips tasks, history and the day', async () => {
@@ -43,7 +49,7 @@ describe('storage', () => {
     await save.tasks(tasks);
     await save.history(history);
     await save.day(day);
-    await expect(loadAll()).resolves.toEqual({ tasks, history, day, problems: [] });
+    await expect(loadAll()).resolves.toEqual({ tasks, history, day, problems: [], empty: false });
   });
 
   it('ignores corrupt or wrongly-shaped data and reports it', async () => {
@@ -58,6 +64,12 @@ describe('storage', () => {
     expect(loaded.history).toEqual([]);
     expect(loaded.day).toBeNull();
     expect(loaded.problems.sort()).toEqual([KEYS.day, KEYS.history, KEYS.tasks].sort());
+  });
+
+  it('keeps Demo mode data separate from real data', async () => {
+    await saver('hive.demo').tasks([{ id: 'd', title: 'Demo', createdAt: '2026-11-10T08:00:00Z' }]);
+    expect((await loadAll('hive')).tasks).toEqual([]);
+    expect((await loadAll('hive.demo')).tasks.map((t) => t.title)).toEqual(['Demo']);
   });
 
   it('never stores a token key', async () => {

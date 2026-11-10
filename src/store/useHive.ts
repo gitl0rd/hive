@@ -14,7 +14,7 @@ import { localDateKey } from '../domain/dates';
 import { newSeed } from '../domain/random';
 import type { Flower } from '../domain/types';
 import { boardFlowers, type HiveAction, hiveReducer, initialHiveState } from './hiveReducer';
-import { loadAll, save } from './storage';
+import { loadAll, type Namespace, saver } from './storage';
 
 /** Where Todoist flowers come from: the read-only API (M6) or demo data. */
 export type TodoistSource = () => Promise<{ flowers: Flower[]; completedToday?: number }>;
@@ -30,7 +30,17 @@ export interface Hive {
   sync: () => Promise<void>;
 }
 
-export function useHive(source: TodoistSource): Hive {
+export interface HiveOptions {
+  /** Storage namespace ('hive.demo' keeps Demo mode apart from real data) */
+  ns?: Namespace;
+  /** Hive tasks to create on the very first run in this namespace (Demo mode) */
+  seedTaskTitles?: string[];
+}
+
+export function useHive(source: TodoistSource, opts: HiveOptions = {}): Hive {
+  const ns = opts.ns ?? 'hive';
+  const seedTitles = opts.seedTaskTitles;
+  const save = useMemo(() => saver(ns), [ns]);
   const [state, dispatch] = useReducer(hiveReducer, undefined, () =>
     initialHiveState(localDateKey(new Date()), newSeed()),
   );
@@ -76,15 +86,23 @@ export function useHive(source: TodoistSource): Hive {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const loaded = await loadAll().catch(() => null);
+      const loaded = await loadAll(ns).catch(() => null);
       if (cancelled) return;
       const today = localDateKey(new Date());
       const fresh = initialHiveState(today, newSeed());
       const day = loaded?.day && !needsRollover(loaded.day, today) ? loaded.day : fresh.day;
       const isNewDay = day === fresh.day;
+      const seeded =
+        loaded?.empty && seedTitles
+          ? seedTitles.map((title) => ({
+              id: Crypto.randomUUID(),
+              title,
+              createdAt: new Date().toISOString(),
+            }))
+          : null;
       dispatch({
         type: 'hydrate',
-        state: { tasks: loaded?.tasks ?? [], history: loaded?.history ?? [], day },
+        state: { tasks: seeded ?? loaded?.tasks ?? [], history: loaded?.history ?? [], day },
       });
       if (loaded?.problems.length) {
         dispatch({
@@ -98,7 +116,9 @@ export function useHive(source: TodoistSource): Hive {
     return () => {
       cancelled = true;
     };
-  }, [runSync]);
+    // Load once per namespace (seed titles are only read on first run).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runSync, ns]);
 
   // Coming back to the app on a new day: roll over and sync.
   useEffect(() => {
@@ -113,13 +133,13 @@ export function useHive(source: TodoistSource): Hive {
   // with the empty initial state).
   useEffect(() => {
     if (ready) save.tasks(state.tasks).catch(() => {});
-  }, [ready, state.tasks]);
+  }, [ready, save, state.tasks]);
   useEffect(() => {
     if (ready) save.history(state.history).catch(() => {});
-  }, [ready, state.history]);
+  }, [ready, save, state.history]);
   useEffect(() => {
     if (ready) save.day(state.day).catch(() => {});
-  }, [ready, state.day]);
+  }, [ready, save, state.day]);
 
   // Only recompute when the inputs change (not on log lines, exclusions, history...).
   const { todoistFlowers, date } = state.day;

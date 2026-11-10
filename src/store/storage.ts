@@ -4,11 +4,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { DayState, Flower, HiveTask, Landing } from '../domain/types';
 
-export const KEYS = {
-  tasks: 'hive.tasks',
-  history: 'hive.history',
-  day: 'hive.day',
-} as const;
+/** Storage namespace: real data lives under 'hive', Demo mode under 'hive.demo'. */
+export type Namespace = 'hive' | 'hive.demo';
+
+export const keysFor = (ns: Namespace) => ({
+  tasks: `${ns}.tasks`,
+  history: `${ns}.history`,
+  day: `${ns}.day`,
+});
+
+export const KEYS = keysFor('hive');
 
 const VERSION = 1;
 
@@ -83,6 +88,8 @@ export interface Loaded {
   day: DayState | null;
   /** Keys that held unreadable data and were ignored */
   problems: string[];
+  /** Nothing stored yet in this namespace (first run) */
+  empty: boolean;
 }
 
 async function read<T>(key: string, check: (x: unknown) => x is T): Promise<T | null | 'bad'> {
@@ -102,17 +109,19 @@ const listOf =
   (x: unknown): x is T[] =>
     Array.isArray(x) && x.every(check);
 
-export async function loadAll(): Promise<Loaded> {
+export async function loadAll(ns: Namespace = 'hive'): Promise<Loaded> {
+  const k = keysFor(ns);
   const [tasks, history, day] = await Promise.all([
-    read(KEYS.tasks, listOf(isHiveTask)),
-    read(KEYS.history, listOf(isLanding)),
-    read(KEYS.day, isDayState),
+    read(k.tasks, listOf(isHiveTask)),
+    read(k.history, listOf(isLanding)),
+    read(k.day, isDayState),
   ]);
   const problems: string[] = [];
-  if (tasks === 'bad') problems.push(KEYS.tasks);
-  if (history === 'bad') problems.push(KEYS.history);
-  if (day === 'bad') problems.push(KEYS.day);
+  if (tasks === 'bad') problems.push(k.tasks);
+  if (history === 'bad') problems.push(k.history);
+  if (day === 'bad') problems.push(k.day);
   return {
+    empty: tasks === null && history === null && day === null,
     tasks: tasks && tasks !== 'bad' ? tasks : [],
     history: history && history !== 'bad' ? history : [],
     day: day && day !== 'bad' ? day : null,
@@ -125,8 +134,13 @@ async function write<T>(key: string, data: T): Promise<void> {
   await AsyncStorage.setItem(key, JSON.stringify(env));
 }
 
-export const save = {
-  tasks: (t: HiveTask[]) => write(KEYS.tasks, t),
-  history: (h: Landing[]) => write(KEYS.history, h),
-  day: (d: DayState) => write(KEYS.day, d),
-};
+export function saver(ns: Namespace = 'hive') {
+  const k = keysFor(ns);
+  return {
+    tasks: (t: HiveTask[]) => write(k.tasks, t),
+    history: (h: Landing[]) => write(k.history, h),
+    day: (d: DayState) => write(k.day, d),
+  };
+}
+
+export const save = saver('hive');

@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { Screen } from './src/ui/Screen';
+import { AppRoot } from './src/ui/AppRoot';
 import { colors } from './src/ui/theme';
 
 export default function App() {
@@ -14,7 +14,7 @@ export default function App() {
     <SafeAreaProvider>
       <View style={styles.root}>
         {/* Render once fonts are in (or failed — fall back to system fonts rather than a blank screen). */}
-        {fontsLoaded || fontError ? <Screen /> : null}
+        {fontsLoaded || fontError ? <AppRoot /> : null}
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>

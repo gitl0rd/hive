@@ -15,6 +15,12 @@ import { TodayList } from './TodayList';
 import { colors, fonts, glow, sizes } from './theme';
 import type { BoardModel } from './useBoard';
 
+/** App-level bits the layouts show: Demo marker, CFG entry. */
+export interface Chrome {
+  demo: boolean;
+  onSettings: () => void;
+}
+
 type Tab = 'spin' | 'today' | 'log';
 const TABS = [
   { id: 'spin' as const, label: 'SPIN' },
@@ -23,7 +29,7 @@ const TABS = [
 ];
 
 /** K wrist unit + flight log (390×844 reference). */
-export function MobileLayout({ board }: { board: BoardModel }) {
+export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chrome }) {
   const [tab, setTab] = useState<Tab>('spin');
   const size = sizes.mobile;
   const { spin, winner, actions } = board;
@@ -99,7 +105,13 @@ export function MobileLayout({ board }: { board: BoardModel }) {
         </View>
       )}
 
-      <Footer label="HIVE·OS" flowers={board.flowers} included={board.included} done={board.done} />
+      <Footer
+        label={chrome.demo ? 'HIVE·OS DEMO' : 'HIVE·OS'}
+        flowers={board.flowers}
+        included={board.included}
+        done={board.done}
+        onSettings={chrome.onSettings}
+      />
     </View>
   );
 }

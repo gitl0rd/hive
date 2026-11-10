@@ -13,12 +13,13 @@ import { History } from './History';
 import { FrameTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import { colors, fonts, glow, layout, sizes } from './theme';
+import type { Chrome } from './MobileLayout';
 import type { BoardModel } from './useBoard';
 
 type Tab = 'today' | 'history';
 
 /** K desktop (≥ 900px). Below ~1000px the right column wraps under the comb. */
-export function DesktopLayout({ board }: { board: BoardModel }) {
+export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Chrome }) {
   const [tab, setTab] = useState<Tab>('today');
   const { width, height } = useWindowDimensions();
   const wrapped = width < layout.desktopWrapWidth;
@@ -130,7 +131,8 @@ export function DesktopLayout({ board }: { board: BoardModel }) {
       </View>
 
       <Footer
-        label="HIVE·OS v2"
+        label={chrome.demo ? 'HIVE·OS v2 · DEMO' : 'HIVE·OS v2'}
+        onSettings={chrome.onSettings}
         flowers={board.flowers}
         included={board.included}
         done={board.done}

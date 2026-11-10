@@ -1,30 +1,75 @@
+import { useMemo, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Crt, CrtBackdrop } from './Crt';
+import { sampleHiveTitles, sampleTodoistSource } from '../demo/sampleData';
+import type { Settings } from '../store/settings';
+import type { TodoistSource } from '../store/useHive';
+import { fetchTodoistBoard } from '../todoist/api';
 import { DesktopLayout } from './DesktopLayout';
 import { MobileLayout } from './MobileLayout';
-import { colors, layout, sizes } from './theme';
+import { SettingsPanel } from './SettingsPanel';
+import { layout } from './theme';
 import { useBoard } from './useBoard';
 
-/** Picks the mobile or desktop layout by width, under the CRT overlay. */
-export function Screen() {
+export interface ScreenProps {
+  /** 'demo' uses sample data in its own storage; 'todoist' reads the API with `token` */
+  mode: 'todoist' | 'demo';
+  token: string | null;
+  settings: Settings;
+  onSettingsChange: (s: Settings) => void;
+  onReplaceToken: () => void;
+  onForgetToken: () => void;
+  onLeaveDemo: () => void;
+}
+
+/** The board: picks the mobile or desktop layout by width. */
+export function Screen(props: ScreenProps) {
+  const { mode, token, settings } = props;
   const { width } = useWindowDimensions();
   const desktop = width >= layout.desktopMinWidth;
-  const board = useBoard();
+  const [cfgOpen, setCfgOpen] = useState(false);
+
+  const source: TodoistSource = useMemo(
+    () =>
+      mode === 'demo' || !token ? sampleTodoistSource : () => fetchTodoistBoard(token, new Date()),
+    [mode, token],
+  );
+  const board = useBoard({
+    source,
+    haptics: settings.haptics,
+    ...(mode === 'demo' ? { ns: 'hive.demo', seedTaskTitles: sampleHiveTitles } : { ns: 'hive' }),
+  });
+  const chrome = { demo: mode === 'demo', onSettings: () => setCfgOpen(true) };
 
   return (
-    <View style={styles.root}>
-      <CrtBackdrop />
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-        {desktop ? <DesktopLayout board={board} /> : <MobileLayout board={board} />}
-      </SafeAreaView>
-      <Crt size={desktop ? sizes.desktop : sizes.mobile} />
+    <View style={styles.fill}>
+      {desktop ? (
+        <DesktopLayout board={board} chrome={chrome} />
+      ) : (
+        <MobileLayout board={board} chrome={chrome} />
+      )}
+      {cfgOpen ? (
+        <SettingsPanel
+          mode={mode}
+          haptics={settings.haptics}
+          onHaptics={(on) => props.onSettingsChange({ ...settings, haptics: on })}
+          onReplaceToken={() => {
+            setCfgOpen(false);
+            props.onReplaceToken();
+          }}
+          onForgetToken={() => {
+            setCfgOpen(false);
+            props.onForgetToken();
+          }}
+          onLeaveDemo={() => {
+            setCfgOpen(false);
+            props.onLeaveDemo();
+          }}
+          onClose={() => setCfgOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  safe: { flex: 1 },
-});
+const styles = StyleSheet.create({ fill: { flex: 1 } });

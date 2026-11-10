@@ -112,6 +112,14 @@ describe('hiveReducer', () => {
     );
   });
 
+  it('a rejected token adds a hint to replace it', () => {
+    const t = hiveReducer(withTasks(), { type: 'syncFailed', reason: 'bad token', now });
+    expect(t.day.log.slice(-2)).toEqual([
+      '09:30 > sync todoist ... FAILED (bad token), kept last data',
+      '      fix: CFG > REPLACE TOKEN',
+    ]);
+  });
+
   it('shuffle changes the seed only', () => {
     const s = withTasks();
     const t = hiveReducer(s, { type: 'shuffle', seed: 77, now });

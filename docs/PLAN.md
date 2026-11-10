@@ -88,6 +88,8 @@ Keep `domain/` pure (no React, no I/O) so it's fully unit-tested.
 Base: `https://api.todoist.com/api/v1`. Auth header: `Authorization: Bearer <token>`. CORS is allowed from any origin, so the web build can call it directly.
 
 > Verify each path and response shape against the official v1 reference before relying on it (https://developer.todoist.com/api/v1/). If a path differs, fix it in `api.ts` only.
+>
+> **Verified (M6)** against the official SDK `@doist/todoist-sdk` 11 (endpoint constants + zod schemas), since developer.todoist.com wasn't reachable from the build sandbox: paths above are correct; lists return `{ results, next_cursor }`, completed returns `{ items, next_cursor }`; `since`/`until` are ISO timestamps. Fixtures in `src/todoist/__tests__/fixtures/` follow those shapes.
 
 | Purpose | Request | Notes |
 |---|---|---|
@@ -231,6 +233,8 @@ Footer: `HIVE·OS v2 | meter | DONE NN`. Below ~1000px the right column wraps un
 
 ### Token setup (first run)
 Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A `CFG`/settings entry (small, in the footer) lets you replace or forget the token and toggle haptics.
+
+Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. CFG (footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: CFG > REPLACE TOKEN`.
 
 ## 8. Milestones (each ends runnable and committed)
 

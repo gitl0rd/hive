@@ -10,8 +10,7 @@ import { log } from '../domain/logLines';
 import { planSpin } from '../domain/spinPlan';
 import { spinTimeline } from '../domain/timeline';
 import type { Flower, Landing } from '../domain/types';
-import { sampleTodoistSource } from '../demo/sampleData';
-import { type TodoistSource, useHive } from '../store/useHive';
+import { type HiveOptions, type TodoistSource, useHive } from '../store/useHive';
 import { todoistAppUrl, todoistTaskId, todoistWebUrl } from '../todoist/links';
 
 export type Phase = 'idle' | 'flying' | 'landed';
@@ -69,8 +68,13 @@ export interface BoardModel {
   };
 }
 
-export function useBoard(source: TodoistSource = sampleTodoistSource): BoardModel {
-  const hive = useHive(source);
+export interface BoardOptions extends HiveOptions {
+  source: TodoistSource;
+  haptics?: boolean;
+}
+
+export function useBoard({ source, haptics = true, ...hiveOpts }: BoardOptions): BoardModel {
+  const hive = useHive(source, hiveOpts);
   const { state, dispatch, flowers } = hive;
   const { day } = state;
   // Flight state is tied to the layout it was planned on. If the layout changes (task added,
@@ -135,14 +139,14 @@ export function useBoard(source: TodoistSource = sampleTodoistSource): BoardMode
           } else {
             setView((v) => ({ ...v, phase: 'landed', winner: plan.winnerCellIndex, trail: [] }));
             dispatch({ type: 'landed', id: plan.winnerFlowerId, now: new Date() });
-            if (Platform.OS !== 'web') {
+            if (haptics && Platform.OS !== 'web') {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
             }
           }
         }, ev.atMs),
       );
     }
-  }, [layout, included, byId, view, dispatch]);
+  }, [layout, included, byId, view, dispatch, haptics]);
 
   const winner =
     view.phase === 'landed' && view.winner >= 0

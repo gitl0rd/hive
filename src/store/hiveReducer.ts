@@ -170,8 +170,11 @@ export function hiveReducer(state: HiveState, action: HiveAction): HiveState {
       });
     }
 
-    case 'syncFailed':
-      return withDay({ log: logged(log.syncFailed(action.now, action.reason)) });
+    case 'syncFailed': {
+      const lines = [log.syncFailed(action.now, action.reason)];
+      if (action.reason === 'bad token') lines.push(log.badTokenHint());
+      return withDay({ log: logged(...lines) });
+    }
 
     case 'log':
       return withDay({ log: logged(...action.lines) });
