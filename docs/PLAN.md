@@ -160,14 +160,14 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 - Pointy-top hexes, odd-row offset coordinates. Neighbour table:
   - even row: `(c+1,r) 0°, (c,r-1) -60°, (c-1,r-1) -120°, (c-1,r) 180°, (c-1,r+1) 120°, (c,r+1) 60°`
   - odd row: `(c+1,r) 0°, (c+1,r-1) -60°, (c,r-1) -120°, (c-1,r) 180°, (c,r+1) 120°, (c+1,r+1) 60°`
-- One cell per active flower (excluded flowers keep their cell, dimmed). Start at (0,0); repeatedly add a frontier cell chosen with weight = (number of filled neighbours)³ — compact blob, no gaps. Then shuffle which flower goes in which cell. All randomness from a seeded PRNG (mulberry32) using `day.seed`, so the layout is stable all day until Shuffle. **Full re-layout (owner's decision):** the layout is a pure function of `(seed, flowers)` and is recomputed whenever the flower set changes (add / sync / delete). Cells may move when that happens; that's accepted. Don't store cell positions.
+- One cell per active flower (excluded flowers keep their cell, dimmed). Start at (0,0); repeatedly add a frontier cell chosen with weight = (number of filled neighbours)³ — compact blob, no gaps. **Then carve the blob into project territories (owner's decision):** biggest project first, start in the unclaimed cell with the fewest unclaimed neighbours, grow into touching unclaimed cells weighted by (territory neighbours)³; shuffle flowers within their territory. A territory may rarely end up in two pieces if boxed in. All randomness from a seeded PRNG (mulberry32) using `day.seed`, so the layout is stable all day until Shuffle. **Full re-layout (owner's decision):** the layout is a pure function of `(seed, flowers)` and is recomputed whenever the flower set changes (add / sync / delete). Cells may move when that happens; that's accepted. Don't store cell positions.
 - Cell width 150 (desktop) / 112 (mobile) in board units; whole board scales down to fit its area (never up). Lots of tasks → smaller cells (owner OK'd this).
 - **Edges:** for each cell side, draw a border on that cell's side if the neighbour is empty or a different `projectKey`. Colour = the cell's project colour; 3–3.5px, slight glow. Same-project neighbours share no border, so projects form territories.
 
 ### Spin (`domain/spinPlan.ts`)
 - Eligible = flowers not excluded and not gone.
 - Winner = uniform random from eligible (v1; weighting comes later).
-- Hops: 15–20 random hops; each hop 65% chance to a neighbour, otherwise anywhere; never the same cell twice in a row. Then one fake-out hop onto a neighbour of the winner, then the winner.
+- Hops: 15–20 random hops; each hop 65% chance to a neighbour, otherwise anywhere; never the same cell twice in a row. Then, 50% of the time (owner's decision: not every spin), one fake-out hop onto a neighbour of the winner; then the winner.
 - Gap after hop k: `70 + 520 * (k/n)^2.4` ms; fake-out pause 820ms; final settle 520ms. Bee move duration = `min(prevGap*0.85, 460)` ms, **stepped** (6 steps) for the pixel feel, driven by JS timers (see §2). Bee starts from the SPIN button. The player must cancel its timers on unmount and on a new spin.
 - Each hop appends `      hop NN  <title>` to the log; trail = last 5 hops as a dotted line.
 - On landing: log `HH:MM > LANDED: <TITLE> [<PROJECT>]` (rendered inverse), push to history, haptic `Heavy` on native.

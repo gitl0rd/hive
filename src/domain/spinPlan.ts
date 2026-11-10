@@ -26,6 +26,8 @@ export const SPIN = {
   minHops: 15,
   maxHops: 20,
   neighbourChance: 0.65,
+  /** Chance of a fake-out hop next to the winner before landing. */
+  fakeoutChance: 0.5,
   fakeoutPauseMs: 820,
   settleMs: 520,
   maxMoveMs: 460,
@@ -48,7 +50,7 @@ function moveFor(prevGap: number): number {
  * - Winner: uniform over eligible flowers.
  * - n random hops (15–20) over any occupied cell; 65% go to a neighbour. Never the same cell twice
  *   in a row.
- * - Then a fake-out onto a neighbour of the winner, then the winner.
+ * - Then (50% of the time) a fake-out onto a neighbour of the winner, then the winner.
  */
 export function planSpin(
   layout: BoardLayout,
@@ -111,10 +113,9 @@ export function planSpin(
     prevGap = hopGap(k, n);
   });
 
-  // Fake-out: a neighbour of the winner, not the cell we're on. If the only neighbour is where we
-  // already are, that hop already reads as the fake-out.
+  // Sometimes a fake-out: a neighbour of the winner, not the cell we're on.
   const fakeouts = nbs(winner).filter((i) => i !== prev);
-  if (fakeouts.length > 0) {
+  if (fakeouts.length > 0 && rng() < SPIN.fakeoutChance) {
     hops.push({
       cellIndex: pick(rng, fakeouts),
       kind: 'fakeout',

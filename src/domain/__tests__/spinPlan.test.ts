@@ -3,9 +3,10 @@ import { mulberry32 } from '../random';
 import { hopGap, planDurationMs, planSpin, SPIN } from '../spinPlan';
 
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `f${i}`);
+const items = (n: number) => ids(n).map((id, i) => ({ id, group: `p${i % 3}` }));
 
 function check(n: number, eligible: string[], seed: number) {
-  const layout = layoutBoard(seed, ids(n));
+  const layout = layoutBoard(seed, items(n));
   const plan = planSpin(layout, new Set(eligible), mulberry32(seed * 31 + 1));
   expect(plan).not.toBeNull();
   const p = plan!;
@@ -34,8 +35,8 @@ function check(n: number, eligible: string[], seed: number) {
 describe('planSpin', () => {
   it('returns null with 0 eligible', () => {
     expect(planSpin(layoutBoard(1, []), new Set(), mulberry32(1))).toBeNull();
-    expect(planSpin(layoutBoard(1, ids(5)), new Set(), mulberry32(1))).toBeNull();
-    expect(planSpin(layoutBoard(1, ids(5)), new Set(['nope']), mulberry32(1))).toBeNull();
+    expect(planSpin(layoutBoard(1, items(5)), new Set(), mulberry32(1))).toBeNull();
+    expect(planSpin(layoutBoard(1, items(5)), new Set(['nope']), mulberry32(1))).toBeNull();
   });
 
   it('works with a single flower', () => {
@@ -65,7 +66,8 @@ describe('planSpin', () => {
     }
   });
 
-  it('has 15–20 random hops, then a fake-out next to the winner, then the winner', () => {
+  it('has 15–20 random hops, then sometimes a fake-out next to the winner, then the winner', () => {
+    let withFake = 0;
     for (let s = 1; s <= 100; s++) {
       const { layout, plan } = check(12, ids(12), s);
       const random = plan.hops.filter((h) => h.kind === 'hop');
@@ -73,6 +75,7 @@ describe('planSpin', () => {
       expect(random.length).toBeLessThanOrEqual(SPIN.maxHops);
       const fake = plan.hops.filter((h) => h.kind === 'fakeout');
       if (fake.length) {
+        withFake++;
         expect(fake).toHaveLength(1);
         expect(plan.hops[plan.hops.length - 2].kind).toBe('fakeout');
         const w = layout.cells[plan.winnerCellIndex];
@@ -82,6 +85,9 @@ describe('planSpin', () => {
         expect(plan.hops[plan.hops.length - 1].delayMs).toBe(SPIN.fakeoutPauseMs);
       }
     }
+    // random, not always: roughly half the spins
+    expect(withFake).toBeGreaterThan(25);
+    expect(withFake).toBeLessThan(75);
   });
 
   it('slows down: gaps follow 70 + 520 (k/n)^2.4', () => {
@@ -95,7 +101,7 @@ describe('planSpin', () => {
   });
 
   it('winner is roughly uniform', () => {
-    const layout = layoutBoard(3, ids(4));
+    const layout = layoutBoard(3, items(4));
     const counts: Record<string, number> = {};
     const rng = mulberry32(77);
     for (let i = 0; i < 4000; i++) {

@@ -13,6 +13,8 @@ import {
 } from '../hexLayout';
 
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `f${i}`);
+const items = (n: number, groups = 1) => ids(n).map((id, i) => ({ id, group: `p${i % groups}` }));
+const one = (id: string) => [{ id, group: 'p' }];
 
 describe('neighbours', () => {
   it('matches the plan table for even rows', () => {
@@ -74,12 +76,12 @@ describe('neighbours', () => {
 describe('layoutBoard', () => {
   it('handles 0 and 1 flowers', () => {
     expect(layoutBoard(1, []).cells).toEqual([]);
-    expect(layoutBoard(1, ['a']).cells).toEqual([{ col: 0, row: 0, flowerId: 'a' }]);
+    expect(layoutBoard(1, one('a')).cells).toEqual([{ col: 0, row: 0, flowerId: 'a' }]);
   });
 
   it('places every flower exactly once in distinct cells', () => {
     for (const n of [2, 7, 20, 45]) {
-      const { cells } = layoutBoard(123, ids(n));
+      const { cells } = layoutBoard(123, items(n, 4));
       expect(cells).toHaveLength(n);
       expect(new Set(cells.map((c) => c.flowerId)).size).toBe(n);
       expect(new Set(cells.map(coordKey)).size).toBe(n);
@@ -87,7 +89,7 @@ describe('layoutBoard', () => {
   });
 
   it('is connected (a single blob)', () => {
-    const { cells } = layoutBoard(99, ids(30));
+    const { cells } = layoutBoard(99, items(30));
     const keys = new Set(cells.map(coordKey));
     const seen = new Set([coordKey(cells[0])]);
     const stack = [cells[0]];
@@ -105,22 +107,80 @@ describe('layoutBoard', () => {
   });
 
   it('is deterministic for a seed and independent of input order', () => {
-    const a = layoutBoard(5, ['x', 'y', 'z', 'w']);
-    const b = layoutBoard(5, ['w', 'z', 'y', 'x']);
+    const xs = [
+      { id: 'x', group: 'a' },
+      { id: 'y', group: 'b' },
+      { id: 'z', group: 'a' },
+      { id: 'w', group: 'c' },
+    ];
+    const a = layoutBoard(5, xs);
+    const b = layoutBoard(5, [...xs].reverse());
     expect(a).toEqual(b);
   });
 
   it('different seeds give different boards', () => {
-    expect(layoutBoard(1, ids(12))).not.toEqual(layoutBoard(2, ids(12)));
+    expect(layoutBoard(1, items(12))).not.toEqual(layoutBoard(2, items(12)));
   });
 
   it('is compact: most cells have several filled neighbours', () => {
-    const { cells } = layoutBoard(11, ids(19));
+    const { cells } = layoutBoard(11, items(19));
     const keys = new Set(cells.map(coordKey));
     const avg =
       cells.reduce((s, c) => s + neighbours(c).filter((n) => keys.has(coordKey(n))).length, 0) /
       cells.length;
     expect(avg).toBeGreaterThan(3);
+  });
+});
+
+describe('project territories', () => {
+  /** Number of connected pieces each group is split into. */
+  function pieces(
+    cells: { col: number; row: number; flowerId: string }[],
+    groupOf: (id: string) => string,
+  ) {
+    const byKey = new Map(cells.map((c) => [coordKey(c), c]));
+    const seen = new Set<string>();
+    const count = new Map<string, number>();
+    for (const c of cells) {
+      if (seen.has(coordKey(c))) continue;
+      const g = groupOf(c.flowerId);
+      count.set(g, (count.get(g) ?? 0) + 1);
+      const stack = [c];
+      seen.add(coordKey(c));
+      while (stack.length) {
+        const cur = stack.pop()!;
+        for (const nb of neighbours(cur)) {
+          const other = byKey.get(coordKey(nb));
+          if (other && !seen.has(coordKey(other)) && groupOf(other.flowerId) === g) {
+            seen.add(coordKey(other));
+            stack.push(other);
+          }
+        }
+      }
+    }
+    return count;
+  }
+
+  it('keeps each project in one connected territory almost always', () => {
+    let total = 0;
+    let split = 0;
+    for (let seed = 1; seed <= 200; seed++) {
+      const groups = 2 + (seed % 5);
+      const n = 8 + (seed % 20);
+      const its = items(n, groups);
+      const groupOf = (id: string) => its.find((x) => x.id === id)!.group;
+      const p = pieces(layoutBoard(seed, its).cells, groupOf);
+      for (const v of p.values()) {
+        total++;
+        if (v > 1) split++;
+      }
+    }
+    expect(split / total).toBeLessThan(0.1);
+  });
+
+  it('a project of one or a single project is trivially fine', () => {
+    const cells = layoutBoard(3, [{ id: 'solo', group: 'x' }, ...items(9)]).cells;
+    expect(cells.find((c) => c.flowerId === 'solo')).toBeDefined();
   });
 });
 
@@ -142,11 +202,11 @@ describe('geometry', () => {
 
   it('bounds and fitScale never scale up', () => {
     const w = 150;
-    const one = boardBounds(layoutBoard(1, ['a']), w);
-    expect(one.width).toBeCloseTo(w);
-    expect(one.height).toBeCloseTo(2 * radiusForWidth(w));
-    expect(fitScale(one, 1000, 1000)).toBe(1);
-    const many = boardBounds(layoutBoard(1, ids(40)), w);
+    const single = boardBounds(layoutBoard(1, one('a')), w);
+    expect(single.width).toBeCloseTo(w);
+    expect(single.height).toBeCloseTo(2 * radiusForWidth(w));
+    expect(fitScale(single, 1000, 1000)).toBe(1);
+    const many = boardBounds(layoutBoard(1, items(40)), w);
     const s = fitScale(many, 330, 330);
     expect(s).toBeLessThan(1);
     expect(many.width * s).toBeLessThanOrEqual(330 + 1e-9);

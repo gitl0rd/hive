@@ -1,7 +1,7 @@
 // Pointy-top hex board in odd-row offset coordinates (odd rows shifted right by half a cell).
 // See docs/PLAN.md §6 "Board".
 
-import { mulberry32, shuffle, weightedIndex } from './random';
+import { mulberry32, pick, type Rng, shuffle, weightedIndex } from './random';
 
 export interface Coord {
   col: number;
@@ -63,23 +63,94 @@ export function coordKey(c: Coord): string {
   return `${c.col},${c.row}`;
 }
 
+export interface LayoutItem {
+  id: string;
+  /** Items with the same group (project) are placed in touching cells. */
+  group: string;
+}
+
 /**
- * Lay out one cell per flower as a compact blob.
+ * Lay out one cell per flower as a compact blob, with each project forming a territory.
  *
- * Start at (0,0); repeatedly add a frontier cell with weight = (filled neighbours)^3. Then shuffle
- * which flower goes in which cell. All randomness comes from `seed`, so the same seed + same flower
- * set always gives the same board. Flower order doesn't matter (ids are sorted first).
+ * 1. Grow the blob: start at (0,0); repeatedly add a frontier cell with weight =
+ *    (filled neighbours)^3.
+ * 2. Carve it into territories, biggest project first: start in an unclaimed cell with the fewest
+ *    unclaimed neighbours (an edge/corner, so we don't split the remaining space), then grow by
+ *    adding unclaimed cells touching the territory, weighted by (territory neighbours)^3. If a
+ *    territory gets boxed in it continues from a new start (rare; it just ends up in two pieces).
+ * 3. Shuffle flowers within their territory.
  *
- * Full re-layout by design: adding/removing a flower can move every cell.
+ * All randomness comes from `seed`, so the same seed + same items always give the same board.
+ * Item order doesn't matter. Full re-layout by design: any change can move every cell.
  */
-export function layoutBoard(seed: number, flowerIds: readonly string[]): BoardLayout {
-  const n = flowerIds.length;
+export function layoutBoard(seed: number, items: readonly LayoutItem[]): BoardLayout {
+  const n = items.length;
   if (n === 0) return { cells: [] };
   const rng = mulberry32(seed);
+  const cells = growBlob(rng, n);
+  const keyToIndex = new Map(cells.map((c, i) => [coordKey(c), i]));
+  const nbIdx = cells.map((c) =>
+    neighbours(c)
+      .map((nb) => keyToIndex.get(coordKey(nb)))
+      .filter((i): i is number => i !== undefined),
+  );
 
+  // Groups: biggest first; ties broken by a seeded shuffle of the sorted names.
+  const byGroup = new Map<string, string[]>();
+  for (const it of [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))) {
+    const list = byGroup.get(it.group) ?? [];
+    list.push(it.id);
+    byGroup.set(it.group, list);
+  }
+  const groups = shuffle(rng, [...byGroup.keys()].sort()).sort(
+    (a, b) => byGroup.get(b)!.length - byGroup.get(a)!.length,
+  );
+
+  const owner: (string | null)[] = cells.map(() => null);
+  const free = (i: number) => owner[i] === null;
+  const freeNeighbours = (i: number) => nbIdx[i].filter(free).length;
+
+  const pickStart = (): number => {
+    let best: number[] = [];
+    let bestScore = Infinity;
+    owner.forEach((o, i) => {
+      if (o !== null) return;
+      const score = freeNeighbours(i);
+      if (score < bestScore) {
+        bestScore = score;
+        best = [i];
+      } else if (score === bestScore) best.push(i);
+    });
+    return pick(rng, best);
+  };
+
+  const assignment: string[] = cells.map(() => '');
+  for (const g of groups) {
+    const ids = shuffle(rng, byGroup.get(g)!);
+    const territory: number[] = [];
+    while (territory.length < ids.length) {
+      const frontier: number[] = [];
+      const weights: number[] = [];
+      for (const t of territory) {
+        for (const nb of nbIdx[t]) {
+          if (!free(nb) || frontier.includes(nb)) continue;
+          frontier.push(nb);
+          weights.push(nbIdx[nb].filter((x) => owner[x] === g).length ** 3);
+        }
+      }
+      const next = frontier.length > 0 ? frontier[weightedIndex(rng, weights)] : pickStart();
+      owner[next] = g;
+      territory.push(next);
+    }
+    territory.forEach((cellIndex, k) => (assignment[cellIndex] = ids[k]));
+  }
+
+  return { cells: cells.map((c, i) => ({ ...c, flowerId: assignment[i] })) };
+}
+
+function growBlob(rng: Rng, n: number): Coord[] {
   const filled: Coord[] = [{ col: 0, row: 0 }];
   const filledKeys = new Set([coordKey(filled[0])]);
-
   while (filled.length < n) {
     // Frontier in deterministic order: filled cells in insertion order, neighbours in direction order.
     const frontier: Coord[] = [];
@@ -99,9 +170,7 @@ export function layoutBoard(seed: number, flowerIds: readonly string[]): BoardLa
     filled.push(next);
     filledKeys.add(coordKey(next));
   }
-
-  const ids = shuffle(rng, [...flowerIds].sort());
-  return { cells: filled.map((c, i) => ({ ...c, flowerId: ids[i] })) };
+  return filled;
 }
 
 /** Map coordKey -> cell index, for neighbour lookups. */
