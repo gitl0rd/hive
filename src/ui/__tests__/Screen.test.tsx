@@ -29,7 +29,7 @@ async function renderDemo(over: Partial<Settings> = {}) {
     />,
   );
   // demo seeds 4 Hive tasks + 5 sample Todoist tasks
-  await waitFor(() => expect(screen.getByText('FLWR 09')).toBeTruthy());
+  await waitFor(() => expect(screen.getByLabelText("9 of 9 flowers in today's spin")).toBeTruthy());
 }
 
 const INTERACTIVE = new Set(['button', 'checkbox', 'tab', 'image']);
@@ -99,7 +99,7 @@ describe('Screen (Demo mode)', () => {
     expect(screen.getByLabelText('Spin')).toBeTruthy();
     expect(screen.queryByLabelText('Spin again')).toBeNull();
     expect(screen.getByText('[SHUFFLE]')).toBeTruthy();
-    expect(screen.getByText('FLWR 09')).toBeTruthy(); // nothing excluded
+    expect(screen.getByLabelText("9 of 9 flowers in today's spin")).toBeTruthy(); // nothing excluded
     expect(screen.getByText(/reset comb \.\.\. bee home/)).toBeTruthy();
     await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));
     expect(screen.getAllByText('DEL')).toHaveLength(1); // the landing stays in history

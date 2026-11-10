@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
 import { CombButton } from './CombButton';
 import { TermButton } from './Button';
@@ -12,10 +11,10 @@ import { Frame } from './Frame';
 import { History } from './History';
 import { BracketTabs } from './Tabs';
 import { TodayList } from './TodayList';
-import { colors, fonts, glow, sizes } from './theme';
+import { sizes } from './theme';
 import type { BoardModel } from './useBoard';
 
-/** App-level bits the layouts show: Demo marker, CFG entry. */
+/** App-level bits the layouts show: Demo marker, settings cog. */
 export interface Chrome {
   demo: boolean;
   onSettings: () => void;
@@ -43,10 +42,8 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
 
       {tab === 'spin' ? (
         <>
-          <View style={styles.stats}>
-            <Text style={styles.stat}>FLWR {pad2(board.counts.flowers)}</Text>
-            <Text style={styles.stat}>LATE {pad2(board.counts.late)}</Text>
-          </View>
+          {/* Reserved row under the tabs (owner has plans for it); keeps the comb from shifting. */}
+          <View style={styles.stats} />
           <View style={styles.comb}>
             <Comb
               flowers={board.flowers}
@@ -135,20 +132,7 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 26, gap: 10 },
-  stats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  stat: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    letterSpacing: 2,
-    color: colors.screen,
-    opacity: 0.75,
-    ...glow,
-  },
+  stats: { height: 22, marginTop: 2 },
   comb: { flex: 1, minHeight: 200 },
   cornerBtn: { position: 'absolute', right: 0, bottom: 0 },
   log: { height: 206, marginTop: 8 },

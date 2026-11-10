@@ -6,7 +6,7 @@ import { TermButton } from './Button';
 import { Frame } from './Frame';
 import { colors, fonts, glow } from './theme';
 
-/** CFG: replace/forget the token, switch Demo ↔ Todoist, haptics. */
+/** Settings (cog in the footer): replace/forget the token, switch Demo ↔ Todoist, haptics. */
 export function SettingsPanel({
   mode,
   haptics,

@@ -197,7 +197,7 @@ Hidden when the board is empty. There is no separate shuffle control in the head
 - Under the list: `> ADD: [input] [OK]` (OK is a boxed button), then `[ SYNC TODOIST ]`, then the note `PULLS NEW TASKS ONLY · HIVE TASKS KEPT`.
 
 ### Counts
-- Header/stats: `FLWR NN` (eligible count), `LATE NN`.
+- ~~Header/stats: `FLWR NN` (eligible count), `LATE NN`.~~ Removed from the top of both layouts at the owner's request (space reserved for later). The eligible count still shows in the desktop `TODAY · NN` tab and the footer meter.
 - Footer right: `DONE NN` = Todoist completed today (from §4) + `hiveDone`.
 - Footer middle: meter, one block per flower, filled if included, in its project colour.
 - **No clocks anywhere** except timestamps inside the log and history.
@@ -236,9 +236,9 @@ Right column: list window with frame tabs `TODAY · NN | HISTORY`, then `FLIGHT.
 Footer: `HIVE·OS v2 | meter | DONE NN`. Below ~1000px the right column wraps under the comb.
 
 ### Token setup (first run)
-Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A `CFG`/settings entry (small, in the footer) lets you replace or forget the token and toggle haptics.
+Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A small pixel-art settings cog in the footer (next to `HIVE·OS`; replaced the original `CFG` text at the owner's request) lets you replace or forget the token and toggle haptics.
 
-Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. CFG (footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: CFG > REPLACE TOKEN`.
+Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. Settings (cog in the footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: settings cog > REPLACE TOKEN`.
 
 ## 8. Milestones (each ends runnable and committed)
 
@@ -249,7 +249,7 @@ Demo mode stores its data under a separate `hive.demo.*` namespace and seeds fou
 5. **Persistence** — Hive tasks add/delete/done, history, DayState + rollover, Shuffle.
 6. **Todoist** — token setup, read-only client, sync (add-only), completed-today count, Open in Todoist, demo mode, error states (offline / bad token → log line + keep last data).
 7. **Polish** — empty states (`NO FLOWERS. ADD ONE OR SYNC.`), 1-flower spin, very long titles (truncate in cells, full in list), 20+ flowers (board shrinks), reduced-motion setting (instant landing), accessibility labels on every control.
-   - *As built:* SPIN reads `NOTHING TO SPIN` (disabled) when every flower is off; on shrunken boards cell labels keep ≥ ~8–10px on screen with fewer lines; reduced motion = CFG toggle **or** the OS setting (prefers-reduced-motion on web), lands instantly with no hop lines; the comb is one accessible image whose label describes the board/landing, and landings are announced to screen readers. A test walks every tab and CFG checking each button/checkbox/tab/image has a name.
+   - *As built:* SPIN reads `NOTHING TO SPIN` (disabled) when every flower is off; on shrunken boards cell labels keep ≥ ~8–10px on screen with fewer lines; reduced motion = settings toggle **or** the OS setting (prefers-reduced-motion on web), lands instantly with no hop lines; the comb is one accessible image whose label describes the board/landing, and landings are announced to screen readers. A test walks every tab and the settings panel checking each button/checkbox/tab/image has a name.
 
 **Done when:** on Android and desktop web, with a real token, today+overdue tasks appear with project-coloured borders, a spin plays and lands, actions work, Hive tasks survive an app restart, and there is provably no non-GET call to Todoist.
 

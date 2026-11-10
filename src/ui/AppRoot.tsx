@@ -23,7 +23,7 @@ export function AppRoot() {
   const [view, setView] = useState<View_>('loading');
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [token, setToken] = useState<string | null>(null);
-  /** Came to setup from CFG: offer Cancel back to the board */
+  /** Came to setup from settings: offer Cancel back to the board */
   const [canCancel, setCanCancel] = useState(false);
 
   useEffect(() => {

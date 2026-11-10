@@ -44,15 +44,8 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
         <Text style={styles.brand}>
           HIVE·OS <Text style={{ opacity: 0.55 }}>{'// DAILY SPIN'}</Text>
         </Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.statLine}>
-            {[
-              `FLWR ${pad2(board.counts.flowers)}`,
-              `LATE ${pad2(board.counts.late)}`,
-              `DONE ${pad2(board.done)}`,
-            ].join('\u00A0\u00A0\u00A0')}
-          </Text>
-        </View>
+        {/* Right side of the header is reserved (owner has plans for it). */}
+        <View style={styles.headerRight} />
       </View>
 
       <View style={[styles.main, wrapped ? styles.mainWrapped : null]}>
@@ -190,13 +183,6 @@ const styles = StyleSheet.create({
     ...glow,
   },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 24 },
-  statLine: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    letterSpacing: 2.6,
-    color: colors.screen,
-    ...glow,
-  },
   main: { flex: 1, flexDirection: 'row', gap: 28, minHeight: 0 },
   mainWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', flexDirection: 'column' },
   combWin: {

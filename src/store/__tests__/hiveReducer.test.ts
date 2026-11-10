@@ -116,7 +116,7 @@ describe('hiveReducer', () => {
     const t = hiveReducer(withTasks(), { type: 'syncFailed', reason: 'bad token', now });
     expect(t.day.log.slice(-2)).toEqual([
       '09:30 > sync todoist ... FAILED (bad token), kept last data',
-      '      fix: CFG > REPLACE TOKEN',
+      '      fix: settings cog > REPLACE TOKEN',
     ]);
   });
 

@@ -25,7 +25,7 @@ export const log = {
   ready: (now: Date) => `${hhmm(now)} > ready.`,
   reset: (now: Date, wasFlying: boolean) =>
     `${hhmm(now)} > ${wasFlying ? 'recall bee ... flight aborted' : 'reset comb ... bee home'}`,
-  badTokenHint: () => '      fix: CFG > REPLACE TOKEN',
+  badTokenHint: () => '      fix: settings cog > REPLACE TOKEN',
   syncFailed: (now: Date, reason: string) =>
     `${hhmm(now)} > sync todoist ... FAILED (${reason}), kept last data`,
 };
