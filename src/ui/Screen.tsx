@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { AccessibilityInfo, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { sampleHiveTitles, sampleTodoistSource } from '../demo/sampleData';
 import type { Settings } from '../store/settings';
@@ -28,6 +28,7 @@ export function Screen(props: ScreenProps) {
   const { width } = useWindowDimensions();
   const desktop = width >= layout.desktopMinWidth;
   const [cfgOpen, setCfgOpen] = useState(false);
+  const osReduceMotion = useOsReduceMotion();
 
   const source: TodoistSource = useMemo(
     () =>
@@ -37,6 +38,7 @@ export function Screen(props: ScreenProps) {
   const board = useBoard({
     source,
     haptics: settings.haptics,
+    reducedMotion: settings.reducedMotion || osReduceMotion,
     ...(mode === 'demo' ? { ns: 'hive.demo', seedTaskTitles: sampleHiveTitles } : { ns: 'hive' }),
   });
   const chrome = { demo: mode === 'demo', onSettings: () => setCfgOpen(true) };
@@ -53,6 +55,9 @@ export function Screen(props: ScreenProps) {
           mode={mode}
           haptics={settings.haptics}
           onHaptics={(on) => props.onSettingsChange({ ...settings, haptics: on })}
+          reducedMotion={settings.reducedMotion}
+          osReduceMotion={osReduceMotion}
+          onReducedMotion={(on) => props.onSettingsChange({ ...settings, reducedMotion: on })}
           onReplaceToken={() => {
             setCfgOpen(false);
             props.onReplaceToken();
@@ -70,6 +75,23 @@ export function Screen(props: ScreenProps) {
       ) : null}
     </View>
   );
+}
+
+/** The OS-level "reduce motion" accessibility setting (prefers-reduced-motion on web). */
+function useOsReduceMotion(): boolean {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((v) => alive && setOn(v))
+      .catch(() => {});
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setOn);
+    return () => {
+      alive = false;
+      sub?.remove();
+    };
+  }, []);
+  return on;
 }
 
 const styles = StyleSheet.create({ fill: { flex: 1 } });

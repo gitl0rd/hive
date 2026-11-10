@@ -26,6 +26,8 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
   const size = sizes.desktop;
   const { spin, winner, actions } = board;
   const flying = spin.phase === 'flying';
+  const nothingToSpin = board.counts.flowers === 0;
+  const spinLabel = flying ? '◌ IN FLIGHT …' : nothingToSpin ? 'NOTHING TO SPIN' : '▶ SPIN';
   const phaseTag = flying ? '◌ IN FLIGHT' : winner ? '■ LANDED' : '● READY';
   const tabs = [
     { id: 'today' as const, label: `TODAY · ${pad2(board.counts.flowers)}` },
@@ -69,6 +71,11 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
               excluded={board.excluded}
               size={size}
               spin={spin}
+              emptyMessage={
+                board.ready && board.flowers.length === 0
+                  ? 'NO FLOWERS. ADD ONE OR SYNC.'
+                  : undefined
+              }
             />
           </View>
           {winner ? (
@@ -86,14 +93,16 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
             </View>
           ) : (
             <TermButton
-              label={flying ? '◌ IN FLIGHT …' : '▶ SPIN'}
-              glowBox={!flying}
-              disabled={flying}
+              label={spinLabel}
+              glowBox={!flying && !nothingToSpin}
+              disabled={flying || nothingToSpin}
               onPress={actions.spin}
               height={60}
               fontSize={30}
               style={styles.spin}
-              accessibilityLabel={flying ? 'Bee in flight' : 'Spin'}
+              accessibilityLabel={
+                flying ? 'Bee in flight' : nothingToSpin ? 'Nothing to spin' : 'Spin'
+              }
             />
           )}
         </Frame>

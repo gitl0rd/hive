@@ -26,7 +26,9 @@ export function Footer({
   return (
     <View style={styles.row}>
       <View style={styles.left}>
-        <Text style={[styles.t, { fontSize }]}>{label}</Text>
+        <Text style={[styles.t, { fontSize }]} numberOfLines={1}>
+          {label}
+        </Text>
         {onSettings ? (
           <Pressable
             accessibilityRole="button"
@@ -57,7 +59,9 @@ export function Footer({
           />
         ))}
       </View>
-      <Text style={[styles.t, { fontSize }]}>DONE {pad2(done)}</Text>
+      <Text style={[styles.t, styles.fixed, { fontSize }]} numberOfLines={1}>
+        DONE {pad2(done)}
+      </Text>
     </View>
   );
 }
@@ -73,7 +77,8 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   t: { fontFamily: fonts.display, color: colors.screen, letterSpacing: 1.2, ...glow },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  left: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 0 },
+  fixed: { flexShrink: 0 },
   cfg: { minHeight: 32, justifyContent: 'center' },
-  meter: { flexDirection: 'row', flexShrink: 1, overflow: 'hidden' },
+  meter: { flexDirection: 'row', flexShrink: 1, minWidth: 0, overflow: 'hidden' },
 });

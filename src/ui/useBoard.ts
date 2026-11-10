@@ -2,13 +2,13 @@
 // M5 adds persistence (Hive tasks, history, day state) around the same reducer.
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, Platform } from 'react-native';
+import { AccessibilityInfo, Linking, Platform } from 'react-native';
 
 import { boardCounts, eligibleIds, layoutItems } from '../domain/board';
 import { type BoardLayout, layoutBoard } from '../domain/hexLayout';
 import { log } from '../domain/logLines';
 import { planSpin } from '../domain/spinPlan';
-import { spinTimeline } from '../domain/timeline';
+import { instantTimeline, spinTimeline } from '../domain/timeline';
 import type { Flower, Landing } from '../domain/types';
 import { type HiveOptions, type TodoistSource, useHive } from '../store/useHive';
 import { todoistAppUrl, todoistTaskId, todoistWebUrl } from '../todoist/links';
@@ -71,9 +71,16 @@ export interface BoardModel {
 export interface BoardOptions extends HiveOptions {
   source: TodoistSource;
   haptics?: boolean;
+  /** Land instantly (no flight, no hop lines) */
+  reducedMotion?: boolean;
 }
 
-export function useBoard({ source, haptics = true, ...hiveOpts }: BoardOptions): BoardModel {
+export function useBoard({
+  source,
+  haptics = true,
+  reducedMotion = false,
+  ...hiveOpts
+}: BoardOptions): BoardModel {
   const hive = useHive(source, hiveOpts);
   const { state, dispatch, flowers } = hive;
   const { day } = state;
@@ -122,13 +129,14 @@ export function useBoard({ source, haptics = true, ...hiveOpts }: BoardOptions):
       view: { phase: 'flying', bee: { from: start, to: start, step: 6 }, trail: [], winner: -1 },
     });
 
-    for (const ev of spinTimeline(plan)) {
+    const events = reducedMotion ? instantTimeline(plan) : spinTimeline(plan);
+    for (const ev of events) {
       timers.current.push(
         setTimeout(() => {
           if (ev.type === 'hop') {
             const cell = plan.hops[ev.hop].cellIndex;
             const title = byId.get(layout.cells[cell].flowerId)?.title ?? '';
-            dispatch({ type: 'log', lines: [log.hop(ev.hop + 1, title)] });
+            if (!reducedMotion) dispatch({ type: 'log', lines: [log.hop(ev.hop + 1, title)] });
             setView((v) => ({
               ...v,
               bee: { from: v.bee.to, to: cell, step: 0 },
@@ -139,6 +147,12 @@ export function useBoard({ source, haptics = true, ...hiveOpts }: BoardOptions):
           } else {
             setView((v) => ({ ...v, phase: 'landed', winner: plan.winnerCellIndex, trail: [] }));
             dispatch({ type: 'landed', id: plan.winnerFlowerId, now: new Date() });
+            const won = byId.get(plan.winnerFlowerId);
+            if (won) {
+              AccessibilityInfo.announceForAccessibility(
+                `Landed on ${won.title}, ${won.projectName}`,
+              );
+            }
             if (haptics && Platform.OS !== 'web') {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
             }
@@ -146,7 +160,7 @@ export function useBoard({ source, haptics = true, ...hiveOpts }: BoardOptions):
         }, ev.atMs),
       );
     }
-  }, [layout, included, byId, view, dispatch, haptics]);
+  }, [layout, included, byId, view, dispatch, haptics, reducedMotion]);
 
   const winner =
     view.phase === 'landed' && view.winner >= 0

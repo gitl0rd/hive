@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import Svg, { G, Line, Polygon, Polyline, Text as SvgText } from 'react-native-svg';
 
 import { projectEdges } from '../domain/edges';
@@ -25,6 +25,8 @@ export interface CombProps {
   excluded: ReadonlySet<string>;
   size: SizeSet;
   spin?: SpinView;
+  /** Shown instead of the board (e.g. no flowers) */
+  emptyMessage?: string;
 }
 
 const IDLE_VIEW: SpinView = {
@@ -42,7 +44,14 @@ const EDGE_INSET = 0.9;
  * The bee rests at the bottom centre, just above the spin bar, and keeps its size whatever the
  * board's scale.
  */
-export function Comb({ flowers, layout, excluded, size, spin = IDLE_VIEW }: CombProps) {
+export function Comb({
+  flowers,
+  layout,
+  excluded,
+  size,
+  spin = IDLE_VIEW,
+  emptyMessage,
+}: CombProps) {
   const [area, setArea] = useState({ w: 0, h: 0 });
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -67,6 +76,7 @@ export function Comb({ flowers, layout, excluded, size, spin = IDLE_VIEW }: Comb
   const oy = (area.h - reserveForBee - bh * scale) / 2 - (bounds.minY - size.boardPad) * scale;
 
   const center = (i: number): Point => cellCenter(layout.cells[i], size.cellWidth);
+  const text = labelMetrics(size, scale);
   const home: Point = { x: area.w / 2, y: area.h - beeH / 2 - 6 };
   const toScreen = (i: number): Point => {
     if (i < 0 || i >= layout.cells.length) return home;
@@ -105,8 +115,20 @@ export function Comb({ flowers, layout, excluded, size, spin = IDLE_VIEW }: Comb
   const isDim = (f: Flower) => excluded.has(f.id) || !!f.goneFromTodoist;
 
   return (
-    <View style={styles.fill} onLayout={onLayout} testID="comb">
-      {area.w > 0 && area.h > 0 ? (
+    <View
+      style={styles.fill}
+      onLayout={onLayout}
+      testID="comb"
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={combSummary(flowers, excluded, spin, layout)}
+    >
+      {emptyMessage ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>{emptyMessage}</Text>
+        </View>
+      ) : null}
+      {area.w > 0 && area.h > 0 && !emptyMessage ? (
         <Svg width={area.w} height={area.h}>
           <G transform={`translate(${ox} ${oy}) scale(${scale})`}>
             {layout.cells.map((cell, i) => {
@@ -117,6 +139,7 @@ export function Comb({ flowers, layout, excluded, size, spin = IDLE_VIEW }: Comb
               const opacity = isDim(f) ? 0.3 : landed && !isWin ? 0.45 : 1;
               return (
                 <Cell
+                  text={text}
                   key={f.id}
                   flower={f}
                   center={center(i)}
@@ -178,9 +201,49 @@ export function Comb({ flowers, layout, excluded, size, spin = IDLE_VIEW }: Comb
   );
 }
 
+/** What a screen reader hears for the board (the SVG itself is decoration). */
+function combSummary(
+  flowers: Flower[],
+  excluded: ReadonlySet<string>,
+  spin: SpinView,
+  layout: BoardLayout,
+): string {
+  if (spin.phase === 'flying') return 'Comb. The bee is in flight.';
+  if (spin.phase === 'landed' && spin.winner >= 0) {
+    const f = flowers.find((x) => x.id === layout.cells[spin.winner]?.flowerId);
+    if (f) return `Comb. The bee landed on ${f.title}, ${f.projectName}.`;
+  }
+  const on = flowers.filter((f) => !excluded.has(f.id) && !f.goneFromTodoist).length;
+  return `Comb with ${flowers.length} flower${flowers.length === 1 ? '' : 's'}, ${on} in today's spin.`;
+}
+
 type CellState = 'idle' | 'bee' | 'winner';
 
+export interface LabelMetrics {
+  label: number;
+  late: number;
+  maxLines: number;
+}
+
+/** On-screen label size never drops below this (px), however much the board shrinks. */
+export const MIN_LABEL_PX = 10;
+
+/**
+ * Busy boards shrink, so labels are enlarged (in board units) to stay readable on screen, and
+ * get fewer lines (more truncation) instead. Late tags follow the same rule.
+ */
+export function labelMetrics(size: SizeSet, scale: number): LabelMetrics {
+  const s = scale > 0 ? scale : 1;
+  const maxLabel = size.cellWidth / 4.2; // keeps at least ~6 chars per line
+  const label = Math.min(maxLabel, Math.max(size.label, MIN_LABEL_PX / s));
+  const late = Math.min(maxLabel * 0.8, Math.max(size.late, (MIN_LABEL_PX * 0.8) / s));
+  const grown = label / size.label;
+  const maxLines = grown > 1.6 ? 1 : grown > 1.15 ? 2 : 3;
+  return { label, late, maxLines };
+}
+
 function Cell({
+  text,
   flower,
   center,
   size,
@@ -188,6 +251,7 @@ function Cell({
   struck,
   state,
 }: {
+  text: LabelMetrics;
   flower: Flower;
   center: Point;
   size: SizeSet;
@@ -203,11 +267,15 @@ function Cell({
   }));
   const pts = ring.map((p) => `${p.x},${p.y}`).join(' ');
   const late = lateTag(flower.daysLate);
-  const charW = size.label * DISPLAY_CHAR_WIDTH_EM;
+  const charW = text.label * DISPLAY_CHAR_WIDTH_EM;
   const maxChars = Math.max(3, Math.floor((size.cellWidth - size.labelPadX * 2) / charW));
-  const lines = wrapLabel(flower.title.toUpperCase(), maxChars, late ? 2 : 3);
-  const lh = size.label * 0.95;
-  const lateGap = late ? size.late * 1.05 : 0;
+  const lines = wrapLabel(
+    flower.title.toUpperCase(),
+    maxChars,
+    late ? Math.max(1, Math.min(2, text.maxLines - (text.maxLines > 1 ? 1 : 0))) : text.maxLines,
+  );
+  const lh = text.label * 0.95;
+  const lateGap = late ? text.late * 1.05 : 0;
   const blockH = lines.length * lh + lateGap;
   const top = center.y - blockH / 2;
 
@@ -237,7 +305,7 @@ function Cell({
                 x={center.x}
                 y={y}
                 fontFamily={fonts.display}
-                fontSize={size.label}
+                fontSize={text.label}
                 textAnchor="middle"
                 fill="none"
                 stroke={a(0.35)}
@@ -250,7 +318,7 @@ function Cell({
               x={center.x}
               y={y}
               fontFamily={fonts.display}
-              fontSize={size.label}
+              fontSize={text.label}
               textAnchor="middle"
               fill={textColor}
             >
@@ -260,8 +328,8 @@ function Cell({
               <Line
                 x1={center.x - (ln.length * charW) / 2}
                 x2={center.x + (ln.length * charW) / 2}
-                y1={y - size.label * 0.3}
-                y2={y - size.label * 0.3}
+                y1={y - text.label * 0.3}
+                y2={y - text.label * 0.3}
                 stroke={textColor}
                 strokeWidth={1.5}
               />
@@ -272,9 +340,9 @@ function Cell({
       {late ? (
         <SvgText
           x={center.x}
-          y={top + lines.length * lh + size.late * 0.95}
+          y={top + lines.length * lh + text.late * 0.95}
           fontFamily={fonts.display}
-          fontSize={size.late}
+          fontSize={text.late}
           textAnchor="middle"
           fill={textColor}
           opacity={0.8}
@@ -288,4 +356,20 @@ function Cell({
 
 const styles = StyleSheet.create({
   fill: { flex: 1, alignSelf: 'stretch', minHeight: 120 },
+  empty: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  emptyText: {
+    fontFamily: fonts.display,
+    fontSize: 24,
+    letterSpacing: 2,
+    color: colors.screen,
+    opacity: 0.8,
+    textAlign: 'center',
+    textShadowColor: a(0.55),
+    textShadowRadius: 6,
+  },
 });

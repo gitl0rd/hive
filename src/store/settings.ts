@@ -7,9 +7,11 @@ export interface Settings {
   /** null = first run, show token setup */
   mode: Mode | null;
   haptics: boolean;
+  /** Land instantly instead of flying. The OS "reduce motion" setting also turns this on. */
+  reducedMotion: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { mode: null, haptics: true };
+export const DEFAULT_SETTINGS: Settings = { mode: null, haptics: true, reducedMotion: false };
 const KEY = 'hive.settings';
 
 export async function loadSettings(): Promise<Settings> {
@@ -20,6 +22,8 @@ export async function loadSettings(): Promise<Settings> {
     return {
       mode: s.mode === 'todoist' || s.mode === 'demo' ? s.mode : null,
       haptics: typeof s.haptics === 'boolean' ? s.haptics : DEFAULT_SETTINGS.haptics,
+      reducedMotion:
+        typeof s.reducedMotion === 'boolean' ? s.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
     };
   } catch {
     return DEFAULT_SETTINGS;

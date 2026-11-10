@@ -28,9 +28,7 @@ export function History({
       {landings.map((l, i) => (
         <View key={`${l.at}-${i}`} style={styles.row}>
           <Text style={[styles.t, t, { opacity: 0.65 }]}>{hhmm(new Date(l.at))}</Text>
-          <Text style={[styles.t, t, styles.title]} numberOfLines={1}>
-            {l.title.toUpperCase()}
-          </Text>
+          <Text style={[styles.t, t, styles.title]}>{l.title.toUpperCase()}</Text>
           <Text style={[styles.t, t, { color: l.color, textShadowColor: l.color }]}>
             {projectCode(l.projectName)}
           </Text>

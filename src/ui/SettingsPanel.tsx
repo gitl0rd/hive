@@ -11,6 +11,9 @@ export function SettingsPanel({
   mode,
   haptics,
   onHaptics,
+  reducedMotion,
+  osReduceMotion,
+  onReducedMotion,
   onReplaceToken,
   onForgetToken,
   onLeaveDemo,
@@ -19,6 +22,9 @@ export function SettingsPanel({
   mode: Mode;
   haptics: boolean;
   onHaptics: (on: boolean) => void;
+  reducedMotion: boolean;
+  osReduceMotion: boolean;
+  onReducedMotion: (on: boolean) => void;
   onReplaceToken: () => void;
   onForgetToken: () => void;
   onLeaveDemo: () => void;
@@ -70,6 +76,25 @@ export function SettingsPanel({
             {haptics ? '[x]' : '[ ]'} HAPTICS ON LANDING
             {Platform.OS === 'web' ? '  (PHONE ONLY)' : ''}
           </Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{
+            checked: reducedMotion || osReduceMotion,
+            disabled: osReduceMotion,
+          }}
+          accessibilityLabel="Reduced motion: land instantly"
+          disabled={osReduceMotion}
+          onPress={() => onReducedMotion(!reducedMotion)}
+          style={styles.toggle}
+        >
+          <Text style={styles.line}>
+            {reducedMotion || osReduceMotion ? '[x]' : '[ ]'} REDUCED MOTION (INSTANT LANDING)
+          </Text>
+          {osReduceMotion ? (
+            <Text style={styles.note}>ON BECAUSE YOUR DEVICE ASKS FOR REDUCED MOTION.</Text>
+          ) : null}
         </Pressable>
 
         <TermButton label="[ CLOSE ]" onPress={onClose} height={48} fontSize={22} />

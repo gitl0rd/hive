@@ -23,8 +23,17 @@ export function FlightLog({
 }) {
   const lineH = Math.round(fontSize * 1.48);
   const [h, setH] = useState(0);
-  const onLayout = (e: LayoutChangeEvent) => setH(e.nativeEvent.layout.height);
-  const headerH = header ? header.titleSize + header.subSize + 12 : 0;
+  const [w, setW] = useState(0);
+  const onLayout = (e: LayoutChangeEvent) => {
+    setH(e.nativeEvent.layout.height);
+    setW(e.nativeEvent.layout.width - 24);
+  };
+  // Long winner names can take two lines
+  const headerH = header
+    ? header.titleSize * (header.title.length * 0.4 * header.titleSize > w ? 2 : 1) +
+      header.subSize +
+      12
+    : 0;
   const fit = Math.max(1, Math.floor((h - headerH - (showCursor ? lineH : 0)) / lineH));
   const visible = lines.slice(-fit);
 
@@ -32,7 +41,11 @@ export function FlightLog({
     <View style={styles.box} onLayout={onLayout}>
       {header ? (
         <View style={styles.header}>
-          <Text style={[styles.big, { fontSize: header.titleSize }]} numberOfLines={1}>
+          <Text
+            style={[styles.big, { fontSize: header.titleSize }]}
+            numberOfLines={2}
+            accessibilityLiveRegion="polite"
+          >
             {header.title}
           </Text>
           <Text style={[styles.sub, { fontSize: header.subSize }]} numberOfLines={1}>
@@ -40,7 +53,7 @@ export function FlightLog({
           </Text>
         </View>
       ) : null}
-      <View style={styles.lines} accessibilityRole="text" accessibilityLabel="Flight log">
+      <View style={styles.lines} accessibilityLabel="Flight log">
         {visible.map((t, k) => {
           const landed = t.includes(LANDED_MARK);
           return (

@@ -34,6 +34,8 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
   const size = sizes.mobile;
   const { spin, winner, actions } = board;
   const flying = spin.phase === 'flying';
+  const nothingToSpin = board.counts.flowers === 0;
+  const spinLabel = flying ? '◌ IN FLIGHT …' : nothingToSpin ? 'NOTHING TO SPIN' : '▶ SPIN';
 
   return (
     <View style={styles.root}>
@@ -53,6 +55,11 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
               excluded={board.excluded}
               size={size}
               spin={spin}
+              emptyMessage={
+                board.ready && board.flowers.length === 0
+                  ? 'NO FLOWERS. ADD ONE OR SYNC.'
+                  : undefined
+              }
             />
           </View>
           <Frame title="FLIGHT.LOG" style={styles.log}>
@@ -75,14 +82,16 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
             </View>
           ) : (
             <TermButton
-              label={flying ? '◌ IN FLIGHT …' : '▶ SPIN'}
-              glowBox={!flying}
-              disabled={flying}
+              label={spinLabel}
+              glowBox={!flying && !nothingToSpin}
+              disabled={flying || nothingToSpin}
               onPress={actions.spin}
               height={58}
               fontSize={30}
               style={styles.spin}
-              accessibilityLabel={flying ? 'Bee in flight' : 'Spin'}
+              accessibilityLabel={
+                flying ? 'Bee in flight' : nothingToSpin ? 'Nothing to spin' : 'Spin'
+              }
             />
           )}
         </>

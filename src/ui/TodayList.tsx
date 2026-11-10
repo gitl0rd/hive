@@ -65,10 +65,7 @@ export function TodayList({
                 testID={`toggle-${f.id}`}
               >
                 <Text style={[styles.t, text, ink]}>{on ? '[x]' : '[ ]'}</Text>
-                <Text
-                  style={[styles.t, text, styles.title, on ? null : styles.struck, ink]}
-                  numberOfLines={1}
-                >
+                <Text style={[styles.t, text, styles.title, on ? null : styles.struck, ink]}>
                   {f.title.toUpperCase()}
                 </Text>
                 {f.daysLate ? (
