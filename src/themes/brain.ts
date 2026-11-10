@@ -1,6 +1,6 @@
 // BRAIN HIVE: the experiment from the design canvas (page "v2 · daily spin", row
 // "Experiment · BRAIN HIVE"). Same K layout; pink screen on near-black plum, a winged brain
-// instead of the bee, synapse-cyan wings and trail, faint brain folds behind everything.
+// instead of the bee, synapse-cyan wings and trail, faint pixel brain folds behind everything.
 
 import { BRAIN } from './sprites';
 import type { Theme } from './types';
