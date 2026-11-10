@@ -83,4 +83,19 @@ describe('Screen (Demo mode)', () => {
     expect(screen.getByText(/LANDED:/)).toBeTruthy();
     expect(screen.getByRole('image').props.accessibilityLabel).toMatch(/^Comb. The bee landed on/);
   });
+
+  it('RESET returns to the idle board without removing anything', async () => {
+    await renderDemo({ reducedMotion: true });
+    expect(screen.queryByTestId('reset-comb')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Spin'));
+    await waitFor(() => expect(screen.getByLabelText('Spin again')).toBeTruthy());
+    await fireEvent.press(screen.getByTestId('reset-comb'));
+    expect(screen.getByLabelText('Spin')).toBeTruthy();
+    expect(screen.queryByLabelText('Spin again')).toBeNull();
+    expect(screen.queryByTestId('reset-comb')).toBeNull();
+    expect(screen.getByText('FLWR 09')).toBeTruthy(); // nothing excluded
+    expect(screen.getByText(/reset comb \.\.\. bee home/)).toBeTruthy();
+    await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));
+    expect(screen.getAllByText('DEL')).toHaveLength(1); // the landing stays in history
+  });
 });

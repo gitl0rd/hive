@@ -23,6 +23,8 @@ export const log = {
   overdue: (now: Date, count: number) =>
     `${hhmm(now)} > ${count} flower${count === 1 ? '' : 's'} overdue`,
   ready: (now: Date) => `${hhmm(now)} > ready.`,
+  reset: (now: Date, wasFlying: boolean) =>
+    `${hhmm(now)} > ${wasFlying ? 'recall bee ... flight aborted' : 'reset comb ... bee home'}`,
   badTokenHint: () => '      fix: CFG > REPLACE TOKEN',
   syncFailed: (now: Date, reason: string) =>
     `${hhmm(now)} > sync todoist ... FAILED (${reason}), kept last data`,

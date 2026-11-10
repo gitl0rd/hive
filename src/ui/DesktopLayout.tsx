@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
+import { ResetButton } from './ResetButton';
 import { ShuffleButton } from './ShuffleButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
@@ -60,6 +61,11 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
         <Frame
           title="COMB.SYS"
           right={phaseTag}
+          bottomRight={
+            spin.phase !== 'idle' ? (
+              <ResetButton onPress={actions.reset} fontSize={22} />
+            ) : undefined
+          }
           tagSize={22}
           style={[styles.combWin, wrapped ? styles.combWinWrapped : null]}
           accessibilityLabel="Comb"

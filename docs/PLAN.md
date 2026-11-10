@@ -181,6 +181,7 @@ Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST 
 - REMOVE = exclude from today's spin only (never touches Todoist). Log `> rm <title> --today`.
 - DONE (Hive only) = set `doneAt`, `hiveDone++`, exclude. Log `> done <title>`.
 - AGAIN = spin again.
+- `[RESET]` (owner's request; bottom-right of the COMB.SYS frame on desktop, bottom-right of the board on mobile; shown only after a landing or during a flight) = back to the idle board without REMOVE/OPEN/DONE: clears the winner, bee home, aborts a flight in progress. The landing stays in history. Log: `> reset comb ... bee home` / `> recall bee ... flight aborted`.
 
 ### While the bee is in flight
 TODAY edits (toggle, ADD, DEL, SYNC) and SHUFFLE are disabled until it lands (owner's decision). Add/delete/sync/shuffle re-lay out the board, and excluding the chosen winner mid-flight would land on an excluded flower.

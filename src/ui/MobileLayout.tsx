@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
+import { ResetButton } from './ResetButton';
 import { ShuffleButton } from './ShuffleButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
@@ -61,6 +62,11 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
                   : undefined
               }
             />
+            {spin.phase !== 'idle' ? (
+              <View style={styles.reset}>
+                <ResetButton onPress={actions.reset} />
+              </View>
+            ) : null}
           </View>
           <Frame title="FLIGHT.LOG" style={styles.log}>
             <FlightLog
@@ -142,6 +148,7 @@ const styles = StyleSheet.create({
     ...glow,
   },
   comb: { flex: 1, minHeight: 200 },
+  reset: { position: 'absolute', right: 0, bottom: 0 },
   log: { height: 206, marginTop: 8 },
   spin: { marginHorizontal: 18, marginTop: 14, marginBottom: 6 },
   actions: { marginTop: 14, marginBottom: 8 },
