@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
-import { ShuffleButton } from './ShuffleButton';
+import { CombButton } from './CombButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
 import { FlightLog, winnerHeader } from './FlightLog';
@@ -44,22 +44,24 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
         <Text style={styles.brand}>
           HIVE·OS <Text style={{ opacity: 0.55 }}>{'// DAILY SPIN'}</Text>
         </Text>
-        <View style={styles.headerRight}>
-          <ShuffleButton onPress={actions.shuffle} disabled={board.locked} fontSize={22} />
-          <Text style={styles.statLine}>
-            {[
-              `FLWR ${pad2(board.counts.flowers)}`,
-              `LATE ${pad2(board.counts.late)}`,
-              `DONE ${pad2(board.done)}`,
-            ].join('\u00A0\u00A0\u00A0')}
-          </Text>
-        </View>
+        {/* Right side of the header is reserved (owner has plans for it). */}
+        <View style={styles.headerRight} />
       </View>
 
       <View style={[styles.main, wrapped ? styles.mainWrapped : null]}>
         <Frame
           title="COMB.SYS"
           right={phaseTag}
+          bottomRight={
+            board.flowers.length > 0 ? (
+              <CombButton
+                phase={spin.phase}
+                onShuffle={actions.shuffle}
+                onReset={actions.reset}
+                fontSize={22}
+              />
+            ) : undefined
+          }
           tagSize={22}
           style={[styles.combWin, wrapped ? styles.combWinWrapped : null]}
           accessibilityLabel="Comb"
@@ -181,13 +183,6 @@ const styles = StyleSheet.create({
     ...glow,
   },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 24 },
-  statLine: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    letterSpacing: 2.6,
-    color: colors.screen,
-    ...glow,
-  },
   main: { flex: 1, flexDirection: 'row', gap: 28, minHeight: 0 },
   mainWrapped: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', flexDirection: 'column' },
   combWin: {

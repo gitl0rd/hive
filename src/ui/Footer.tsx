@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { pad2 } from '../domain/labels';
 import type { Flower } from '../domain/types';
-import { colors, fonts, glow } from './theme';
+import { PixelCog } from './PixelCog';
+import { a, colors, fonts, glow } from './theme';
 
 /** `HIVE·OS | meter | DONE NN`. One meter block per flower, filled if included, in its colour. */
 export function Footer({
@@ -20,7 +21,7 @@ export function Footer({
   done: number;
   fontSize?: number;
   block?: { w: number; h: number; gap: number; border: number };
-  /** Small CFG entry next to the label */
+  /** Small settings cog next to the label */
   onSettings?: () => void;
 }) {
   return (
@@ -37,7 +38,9 @@ export function Footer({
             hitSlop={12}
             style={styles.cfg}
           >
-            <Text style={[styles.t, { fontSize, opacity: 0.7 }]}>CFG</Text>
+            <View style={styles.cogGlow}>
+              <PixelCog size={Math.round(fontSize * 1.05)} />
+            </View>
           </Pressable>
         ) : null}
       </View>
@@ -79,6 +82,7 @@ const styles = StyleSheet.create({
   t: { fontFamily: fonts.display, color: colors.screen, letterSpacing: 1.2, ...glow },
   left: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 0 },
   fixed: { flexShrink: 0 },
-  cfg: { minHeight: 32, justifyContent: 'center' },
+  cfg: { minHeight: 32, minWidth: 32, alignItems: 'center', justifyContent: 'center' },
+  cogGlow: { opacity: 1, filter: `drop-shadow(0 0 4px ${a(0.6)})` },
   meter: { flexDirection: 'row', flexShrink: 1, minWidth: 0, overflow: 'hidden' },
 });

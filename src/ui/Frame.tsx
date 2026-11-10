@@ -7,6 +7,7 @@ import { colors, fonts, glow } from './theme';
 export function Frame({
   title,
   right,
+  bottomRight,
   tagSize = 20,
   style,
   children,
@@ -14,6 +15,8 @@ export function Frame({
 }: {
   title?: ReactNode;
   right?: ReactNode;
+  /** Control sitting on the bottom edge, right side (e.g. [RESET]) */
+  bottomRight?: ReactNode;
   tagSize?: number;
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
@@ -32,6 +35,9 @@ export function Frame({
       ) : null}
       {right ? (
         <Text style={[styles.tag, { top: tagTop, right: 12, fontSize: tagSize }]}>{right}</Text>
+      ) : null}
+      {bottomRight ? (
+        <View style={[styles.edgeSlot, { bottom: tagTop - 4, right: 12 }]}>{bottomRight}</View>
       ) : null}
     </View>
   );
@@ -52,6 +58,11 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     lineHeight: undefined,
     ...glow,
+  },
+  edgeSlot: {
+    position: 'absolute',
+    backgroundColor: colors.bg,
+    paddingHorizontal: 4,
   },
   tagSlot: {
     position: 'absolute',

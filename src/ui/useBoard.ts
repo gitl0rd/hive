@@ -65,6 +65,8 @@ export interface BoardModel {
     shuffle: () => void;
     /** HISTORY */
     deleteLanding: (l: Landing) => void;
+    /** Back to the idle board (clear the landing / abort a flight). Changes nothing else. */
+    reset: () => void;
   };
 }
 
@@ -192,6 +194,11 @@ export function useBoard({
       shuffle: () => {
         if (!locked) shuffleHive();
       },
+      reset: () => {
+        if (view.phase === 'idle') return;
+        settle();
+        dispatch({ type: 'log', lines: [log.reset(new Date(), view.phase === 'flying')] });
+      },
       deleteLanding: (l: Landing) =>
         dispatch({ type: 'deleteLanding', at: l.at, flowerId: l.flowerId }),
       open: () => {
@@ -209,7 +216,18 @@ export function useBoard({
         settle();
       },
     }),
-    [spin, winner, settle, locked, dispatch, addTask, deleteTask, syncHive, shuffleHive],
+    [
+      spin,
+      winner,
+      settle,
+      locked,
+      dispatch,
+      addTask,
+      deleteTask,
+      syncHive,
+      shuffleHive,
+      view.phase,
+    ],
   );
 
   return {
