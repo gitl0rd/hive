@@ -72,7 +72,6 @@ export function isDayState(x: unknown): x is DayState {
     x.todoistFlowers.every(isFlower) &&
     Array.isArray(x.excluded) &&
     x.excluded.every(isStr) &&
-    (x.hidden === undefined || (Array.isArray(x.hidden) && x.hidden.every(isStr))) &&
     isNum(x.hiveDone) &&
     Array.isArray(x.log) &&
     x.log.every(isStr) &&

@@ -3,7 +3,6 @@ import {
   boardFlowers,
   hiveReducer,
   type HiveState,
-  hiddenCount,
   HISTORY_CAP,
   initialHiveState,
 } from '../hiveReducer';
@@ -41,36 +40,26 @@ describe('hiveReducer', () => {
     expect(s.day.log).toContain('09:30 > add "gym" ... ok');
   });
 
-  it('deletes Hive tasks only, and clears their exclusion', () => {
+  it('deletes Hive tasks, and clears their exclusion', () => {
     let s = withTasks();
     s = hiveReducer(s, { type: 'toggle', id: 'hive:a' });
     s = hiveReducer(s, { type: 'deleteTask', flowerId: 'hive:a', now });
     expect(s.tasks.map((t) => t.id)).toEqual(['b']);
     expect(s.day.excluded).toEqual([]);
-    expect(hiveReducer(s, { type: 'deleteTask', flowerId: 'todoist:1', now })).toBe(s);
   });
 
-  it('HIDE takes a Todoist task off today only; sync does not bring it back; UNHIDE does', () => {
+  it('DEL on a Todoist task drops it from Hive only; a later sync may bring it back', () => {
     let s = withTasks();
     s = hiveReducer(s, { type: 'toggle', id: 'todoist:1' });
-    s = hiveReducer(s, { type: 'hide', id: 'todoist:1', now });
+    s = hiveReducer(s, { type: 'deleteTask', flowerId: 'todoist:1', now });
     expect(boardFlowers(s).map((f) => f.id)).toEqual(['todoist:2', 'hive:a', 'hive:b']);
     expect(s.day.excluded).toEqual([]);
-    expect(hiddenCount(s.day)).toBe(1);
-    expect(s.day.log).toContain('09:30 > hide task 1 --today');
-    // Hive tasks are deleted with DEL, not hidden; hidden tasks can't be hidden twice.
-    expect(hiveReducer(s, { type: 'hide', id: 'hive:a', now })).toBe(s);
-    expect(hiveReducer(s, { type: 'hide', id: 'todoist:1', now })).toBe(s);
+    expect(s.tasks.map((t) => t.id)).toEqual(['a', 'b']);
+    expect(s.day.log).toContain('09:30 > del "task 1"');
+    expect(hiveReducer(s, { type: 'deleteTask', flowerId: 'todoist:1', now })).toBe(s);
 
     s = hiveReducer(s, { type: 'synced', incoming: [td('1'), td('2')], now });
-    expect(boardFlowers(s).map((f) => f.id)).not.toContain('todoist:1');
-
-    const back = hiveReducer(s, { type: 'unhideAll', now });
-    expect(boardFlowers(back).map((f) => f.id)).toContain('todoist:1');
-    expect(back.day.log).toContain('09:30 > unhide 1 --today');
-
-    const tomorrow = hiveReducer(s, { type: 'newDay', date: '2026-11-11', seed: 2 });
-    expect(tomorrow.day.hidden).toEqual([]);
+    expect(boardFlowers(s).map((f) => f.id)).toContain('todoist:1');
   });
 
   it('DONE sets doneAt, counts, excludes; Todoist tasks are untouched', () => {

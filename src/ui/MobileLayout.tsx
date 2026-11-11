@@ -112,8 +112,6 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
             onToggle={actions.toggle}
             onAdd={actions.add}
             onDelete={actions.del}
-            hiddenCount={board.hidden}
-            onUnhide={actions.unhide}
             onSync={actions.sync}
             highlightId={winner?.id}
             locked={board.locked}
