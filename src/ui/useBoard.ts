@@ -10,7 +10,6 @@ import { log } from '../domain/logLines';
 import { planSpin } from '../domain/spinPlan';
 import { instantTimeline, spinTimeline } from '../domain/timeline';
 import type { Flower, Landing } from '../domain/types';
-import { hiddenCount } from '../store/hiveReducer';
 import { type HiveOptions, type TodoistSource, useHive } from '../store/useHive';
 import { todoistAppUrl, todoistTaskId, todoistWebUrl } from '../todoist/links';
 
@@ -46,8 +45,6 @@ export interface BoardModel {
   excluded: ReadonlySet<string>;
   included: ReadonlySet<string>;
   counts: { flowers: number; late: number };
-  /** Todoist tasks hidden from today's board */
-  hidden: number;
   log: string[];
   history: Landing[];
   done: number;
@@ -63,10 +60,7 @@ export interface BoardModel {
     remove: () => void;
     /** TODAY list */
     add: (title: string) => void;
-    /** Hive task: delete it. Todoist task: hide it for today (Todoist is never touched). */
     del: (flowerId: string) => void;
-    /** Bring back every Todoist task hidden today */
-    unhide: () => void;
     sync: () => void;
     shuffle: () => void;
     /** HISTORY */
@@ -192,15 +186,7 @@ export function useBoard({
         if (!locked) addTask(title);
       },
       del: (flowerId: string) => {
-        if (locked) return;
-        if (byId.get(flowerId)?.source === 'todoist') {
-          dispatch({ type: 'hide', id: flowerId, now: new Date() });
-        } else {
-          deleteTask(flowerId);
-        }
-      },
-      unhide: () => {
-        if (!locked) dispatch({ type: 'unhideAll', now: new Date() });
+        if (!locked) deleteTask(flowerId);
       },
       sync: () => {
         if (!locked) void syncHive();
@@ -235,7 +221,6 @@ export function useBoard({
       winner,
       settle,
       locked,
-      byId,
       dispatch,
       addTask,
       deleteTask,
@@ -253,7 +238,6 @@ export function useBoard({
     excluded,
     included,
     counts: boardCounts(flowers, day.excluded),
-    hidden: hiddenCount(day),
     log: day.log,
     history: state.history,
     done: day.hiveDone + (day.todoistDone ?? 0),

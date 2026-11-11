@@ -19,7 +19,7 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 - One screen, responsive: mobile layout (< 900px wide) and desktop layout (≥ 900px).
 - Board of today + overdue Todoist tasks (all projects, including Work) plus Hive-only tasks.
 - Spin: bee animation, flight log, landing actions.
-- TODAY list: include/exclude toggle per task, add Hive task, delete Hive task, hide Todoist task for today, Sync.
+- TODAY list: include/exclude toggle per task, add Hive task, delete task (DEL), Sync.
 - HISTORY: past landings with time; each entry has `DEL` to remove it from Hive's history (owner's request; never touches Todoist).
 - Footer meter + DONE count for today.
 - First-run token setup; Demo mode with sample data when there's no token.
@@ -138,7 +138,6 @@ interface DayState {          // keyed by local date 'YYYY-MM-DD', resets each d
   date: string;
   todoistFlowers: Flower[];   // what's been synced today
   excluded: string[];         // flower ids toggled off / removed for today
-  hidden?: string[];          // Todoist flower ids hidden from today's board + list (HIDE)
   hiveDone: number;           // Hive tasks marked DONE today
   log: string[];              // flight log lines (cap 200)
   seed: number;               // board layout seed (Shuffle changes it)
@@ -195,8 +194,8 @@ A single text control at the bottom-right of the COMB.SYS frame (desktop) / of t
 Hidden when the board is empty. There is no separate shuffle control in the header/stats row.
 
 ### TODAY list
-- Rows: `[x]`/`[ ]` toggle · TITLE · `!2D` late tag · project code (3 letters, in project colour) · `DEL` for Hive tasks · `HIDE` for Todoist tasks.
-- `HIDE` (owner's request, "I'll do it later"): takes a Todoist task off today's board and list entirely. Hive-only, never touches Todoist. It stays in `todoistFlowers` so sync doesn't re-add it; a new day clears `hidden`, so it's back tomorrow if still due. Log `> hide <title> --today`. When any are hidden, a `N HIDDEN TODAY · [UNHIDE]` row at the bottom of the list brings them all back (`> unhide N --today`).
+- Rows: `[x]`/`[ ]` toggle · TITLE · `!2D` late tag · project code (3 letters, in project colour) · `DEL`.
+- `DEL` (owner's request): Hive task → deleted. Todoist task → dropped from Hive's list only (removed from `todoistFlowers`); never touches Todoist, and a later sync may add it back (accepted). Log `> del "<title>"`.
 - Under the list: `> ADD: [input] [OK]` (OK is a boxed button), then `[ SYNC TODOIST ]`, then the note `PULLS NEW TASKS ONLY · HIVE TASKS KEPT`.
 
 ### Counts

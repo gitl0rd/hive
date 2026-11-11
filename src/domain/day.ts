@@ -16,7 +16,6 @@ export function freshDay(date: string, seed: number): DayState {
     date,
     todoistFlowers: [],
     excluded: [],
-    hidden: [],
     hiveDone: 0,
     log: [log.boot()],
     seed,

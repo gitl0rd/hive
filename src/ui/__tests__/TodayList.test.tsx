@@ -29,35 +29,13 @@ describe('TodayList', () => {
     expect(h.onToggle).toHaveBeenCalledWith('todoist:1');
   });
 
-  it('only Hive tasks have DEL', async () => {
+  it('every row has DEL', async () => {
     const h = await setup();
-    const hiveCount = sampleFlowers.filter((f) => f.source === 'hive').length;
-    expect(screen.getAllByText('DEL')).toHaveLength(hiveCount);
-    expect(screen.queryByTestId('del-todoist:1')).toBeNull();
+    expect(screen.getAllByText('DEL')).toHaveLength(sampleFlowers.length);
     await fireEvent.press(screen.getByTestId('del-hive:4'));
     expect(h.onDelete).toHaveBeenCalledWith('hive:4');
-  });
-
-  it('Todoist tasks have HIDE (for today), and hidden ones can be brought back', async () => {
-    const h = await setup();
-    const todoistCount = sampleFlowers.filter((f) => f.source === 'todoist').length;
-    expect(screen.getAllByText('HIDE')).toHaveLength(todoistCount);
-    expect(screen.queryByTestId('unhide')).toBeNull();
-    await fireEvent.press(screen.getByTestId('hide-todoist:1'));
+    await fireEvent.press(screen.getByTestId('del-todoist:1'));
     expect(h.onDelete).toHaveBeenCalledWith('todoist:1');
-
-    const onUnhide = jest.fn();
-    await render(
-      <TodayList
-        flowers={sampleFlowers}
-        excluded={new Set()}
-        hiddenCount={2}
-        onUnhide={onUnhide}
-      />,
-    );
-    expect(screen.getByText('2 HIDDEN TODAY · [UNHIDE]')).toBeTruthy();
-    await fireEvent.press(screen.getByTestId('unhide'));
-    expect(onUnhide).toHaveBeenCalled();
   });
 
   it('adds a trimmed Hive task and ignores blanks', async () => {

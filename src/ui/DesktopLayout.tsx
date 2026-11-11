@@ -128,8 +128,6 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
                 onToggle={actions.toggle}
                 onAdd={actions.add}
                 onDelete={actions.del}
-                hiddenCount={board.hidden}
-                onUnhide={actions.unhide}
                 onSync={actions.sync}
                 fontSize={24}
                 highlightId={winner?.id}

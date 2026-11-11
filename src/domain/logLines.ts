@@ -12,8 +12,6 @@ export const log = {
   landed: (now: Date, title: string, project: string) =>
     `${hhmm(now)} > LANDED: ${title.toUpperCase()} [${project.toUpperCase()}]`,
   removed: (now: Date, title: string) => `${hhmm(now)} > rm ${title.toLowerCase()} --today`,
-  hidden: (now: Date, title: string) => `${hhmm(now)} > hide ${title.toLowerCase()} --today`,
-  unhidden: (now: Date, count: number) => `${hhmm(now)} > unhide ${count} --today`,
   done: (now: Date, title: string) => `${hhmm(now)} > done ${title.toLowerCase()}`,
   nothingToSpin: (now: Date) => `${hhmm(now)} > no flowers to spin`,
   sync: (now: Date, added: number, hiveKept: number) =>

@@ -12,11 +12,8 @@ export interface TodayListProps {
   flowers: Flower[];
   excluded: ReadonlySet<string>;
   onToggle?: (id: string) => void;
-  /** Hive task: delete. Todoist task: hide for today. */
+  /** Hive task: delete. Todoist task: drop from Hive's list (sync may bring it back). */
   onDelete?: (id: string) => void;
-  /** Todoist tasks hidden today, and how to bring them back */
-  hiddenCount?: number;
-  onUnhide?: () => void;
   onAdd?: (title: string) => void;
   onSync?: () => void;
   /** 22 (mobile) / 24 (desktop) */
@@ -27,14 +24,12 @@ export interface TodayListProps {
   locked?: boolean;
 }
 
-/** TODAY: include/exclude toggles, Hive DEL, Todoist HIDE (today only), ADD, SYNC. */
+/** TODAY: include/exclude toggles, DEL (Hive: delete; Todoist: drop from Hive's list), ADD, SYNC. */
 export function TodayList({
   flowers,
   excluded,
   onToggle,
   onDelete,
-  hiddenCount = 0,
-  onUnhide,
   onAdd,
   onSync,
   fontSize = 22,
@@ -90,35 +85,18 @@ export function TodayList({
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${f.source === 'hive' ? 'Delete' : 'Hide for today'} ${f.title}`}
+                accessibilityLabel={`Delete ${f.title}`}
                 accessibilityState={{ disabled: locked }}
                 disabled={locked}
                 onPress={() => onDelete?.(f.id)}
                 style={[styles.del, locked ? styles.lockedCtl : null]}
-                testID={`${f.source === 'hive' ? 'del' : 'hide'}-${f.id}`}
+                testID={`del-${f.id}`}
               >
-                <Text style={[styles.t, { fontSize: fontSize - 4, opacity: 0.7 }]}>
-                  {f.source === 'hive' ? 'DEL' : 'HIDE'}
-                </Text>
+                <Text style={[styles.t, { fontSize: fontSize - 4, opacity: 0.7 }]}>DEL</Text>
               </Pressable>
             </View>
           );
         })}
-        {hiddenCount > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Show ${hiddenCount} hidden Todoist task${hiddenCount === 1 ? '' : 's'}`}
-            accessibilityState={{ disabled: locked }}
-            disabled={locked}
-            onPress={onUnhide}
-            style={[styles.hiddenRow, locked ? styles.lockedCtl : null]}
-            testID="unhide"
-          >
-            <Text style={[styles.t, { fontSize: fontSize - 6, opacity: 0.6, letterSpacing: 1.5 }]}>
-              {`${hiddenCount} HIDDEN TODAY · [UNHIDE]`}
-            </Text>
-          </Pressable>
-        ) : null}
       </ScrollView>
       <View style={styles.cmdRow}>
         <Text style={[styles.t, text]} nativeID="add-label">
@@ -180,8 +158,7 @@ const makeStyles = (t: ThemeTokens) =>
     t: { fontFamily: fonts.display, color: t.screen, ...t.glow },
     title: { flex: 1, minWidth: 0 },
     struck: { textDecorationLine: 'line-through' },
-    hiddenRow: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
-    del: { width: 64, height: 44, alignItems: 'center', justifyContent: 'center' },
+    del: { width: 52, height: 44, alignItems: 'center', justifyContent: 'center' },
     lockedCtl: { opacity: 0.35 },
     cmdRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
     input: {
