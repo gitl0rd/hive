@@ -2,7 +2,7 @@
 //
 // - Loads tasks/history/day from storage on start.
 // - New local day (or first run): fresh DayState with a new seed, then a boot sync.
-// - Same day: keep the stored day and sync (add-only) on open.
+// - Same day: keep the stored day and sync on open.
 // - App returns to the foreground on a new day: roll over and sync.
 // - Saves each slice when it changes.
 import * as Crypto from 'expo-crypto';

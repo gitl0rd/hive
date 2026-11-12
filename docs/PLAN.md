@@ -10,7 +10,7 @@ The chosen design is **K: wrist unit + flight log** (mobile) and **K desktop**. 
 ## 0. Hard rules
 
 1. **Todoist is read-only.** Hive never creates, edits, completes, moves or deletes anything in Todoist. The API client only exposes `GET` and throws on any other method (see §4). No Todoist SDK. This is the owner's explicit, permanent requirement.
-2. **Sync only adds.** Syncing pulls Todoist tasks that aren't already on the board. It never removes or changes Hive-only tasks.
+2. **Sync never touches Hive-only tasks.** Syncing pulls Todoist tasks that aren't already on the board and removes Todoist tasks Todoist no longer returns (completed/rescheduled; owner's request). It never removes or changes Hive-only tasks.
 3. The token lives only on the device (secure storage on native, `localStorage` on web). Never logged, never sent anywhere except `api.todoist.com`.
 
 ## 1. Scope
@@ -55,7 +55,7 @@ src/
     types.ts
   domain/
     types.ts               Flower, HiveTask, Landing, DayState
-    sync.ts                mergeTodoist(existing, incoming) — add-only
+    sync.ts                mergeTodoist(existing, incoming) — adds new, drops gone
     hexLayout.ts           seeded random blob layout + neighbours
     edges.ts               which cell sides get a project border
     spinPlan.ts            hop sequence + timings
@@ -127,7 +127,7 @@ interface Flower {            // one cell on the board
   projectName: string;        // 'Mega Dog', 'Inbox', 'Hive'
   color: string;              // display hex (already brightened)
   daysLate?: number;
-  goneFromTodoist?: boolean;  // was synced earlier, no longer returned (done/rescheduled in Todoist)
+  goneFromTodoist?: boolean;  // legacy: older builds kept dropped tasks dimmed; sync now removes them
 }
 
 interface HiveTask { id: string; title: string; createdAt: string; doneAt?: string }   // persists across days
@@ -150,11 +150,11 @@ Storage keys: `hive.token`, `hive.tasks` (HiveTask[]), `hive.history` (Landing[]
 
 ## 6. Behaviour
 
-### Sync (`domain/sync.ts`, add-only)
+### Sync (`domain/sync.ts`)
 ```
 mergeTodoist(current: Flower[], incoming: Flower[]): { flowers, added: number, gone: number }
 - For each incoming flower not in current (by id): append.
-- For each current Todoist flower: if present in incoming, refresh title/colour/daysLate; if absent, set goneFromTodoist = true (keep it, dim it, exclude from spins).
+- For each current Todoist flower: if present in incoming, refresh title/colour/daysLate; if absent (completed, deleted or rescheduled in Todoist), **remove it from the board** (owner's request; replaced the earlier keep-it-dimmed behaviour) and drop its exclusion. Log `+N new, -N gone, …` (the `-N gone` part only when N > 0).
 - Never touch Hive flowers.
 ```
 Runs automatically on app open and on day rollover; manually via [ SYNC TODOIST ]. Log: `HH:MM > sync todoist ... +N new, M hive kept`.
@@ -260,7 +260,7 @@ Owner request: switchable themes from the settings cog (CFG.SYS → THEME), with
 3. **Static board** — `Comb` renders sample data with project edges; responsive Mobile/Desktop shells; TODAY/LOG/HISTORY lists from sample data.
 4. **Spin** — bee animation playing a `spinPlan`, trail, log lines, landing state, action row, haptics.
 5. **Persistence** — Hive tasks add/delete/done, history, DayState + rollover, Shuffle.
-6. **Todoist** — token setup, read-only client, sync (add-only), completed-today count, Open in Todoist, demo mode, error states (offline / bad token → log line + keep last data).
+6. **Todoist** — token setup, read-only client, sync (originally add-only; now also drops tasks Todoist no longer returns), completed-today count, Open in Todoist, demo mode, error states (offline / bad token → log line + keep last data).
 7. **Polish** — empty states (`NO FLOWERS. ADD ONE OR SYNC.`), 1-flower spin, very long titles (truncate in cells, full in list), 20+ flowers (board shrinks), reduced-motion setting (instant landing), accessibility labels on every control.
    - *As built:* SPIN reads `NOTHING TO SPIN` (disabled) when every flower is off; on shrunken boards cell labels keep ≥ ~8–10px on screen with fewer lines; reduced motion = settings toggle **or** the OS setting (prefers-reduced-motion on web), lands instantly with no hop lines; the comb is one accessible image whose label describes the board/landing, and landings are announced to screen readers. A test walks every tab and the settings panel checking each button/checkbox/tab/image has a name.
 

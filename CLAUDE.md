@@ -6,7 +6,7 @@ Personal daily-spin app (Expo + TypeScript). Pulls today/overdue Todoist tasks o
 
 ## Non-negotiable
 - Todoist is READ-ONLY. Only `GET` requests to `api.todoist.com`, only through `src/todoist/client.ts`. Never add create/update/complete/delete calls, even if asked — confirm with the owner first.
-- Sync only adds Todoist tasks; never modifies or removes Hive-only tasks.
+- Sync adds new Todoist tasks and drops ones Todoist no longer returns (completed/rescheduled); it never modifies or removes Hive-only tasks.
 - Never log or commit the Todoist token.
 
 ## Conventions

@@ -165,9 +165,14 @@ export function hiveReducer(state: HiveState, action: HiveAction): HiveState {
       return withDay({ seed: action.seed, log: logged(log.shuffled(action.now)) });
 
     case 'synced': {
-      const { flowers, added } = mergeTodoist(state.day.todoistFlowers, action.incoming);
+      const { flowers, added, gone } = mergeTodoist(state.day.todoistFlowers, action.incoming);
       const hiveKept = hiveFlowers(state.tasks, state.day.date).length;
-      const lines = [log.sync(action.now, added, hiveKept)];
+      const lines = [log.sync(action.now, added, hiveKept, gone)];
+      // Forget exclusions of Todoist tasks that just left the board.
+      const kept = new Set(flowers.map((f) => f.id));
+      const excluded = state.day.excluded.filter(
+        (id) => !id.startsWith('todoist:') || kept.has(id),
+      );
       if (action.boot) {
         const late = flowers.filter((f) => (f.daysLate ?? 0) > 0 && !f.goneFromTodoist).length;
         lines.push(
@@ -178,6 +183,7 @@ export function hiveReducer(state: HiveState, action: HiveAction): HiveState {
       }
       return withDay({
         todoistFlowers: flowers,
+        ...(excluded.length !== state.day.excluded.length ? { excluded } : {}),
         ...(action.todoistDone !== undefined ? { todoistDone: action.todoistDone } : {}),
         log: logged(...lines),
       });

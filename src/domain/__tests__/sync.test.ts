@@ -30,8 +30,8 @@ describe('mergeTodoist', () => {
   it('never removes or changes Hive flowers', () => {
     const h = hive('a');
     const r = mergeTodoist([h, td('1')], []);
+    expect(r.flowers).toEqual([h]);
     expect(r.flowers[0]).toBe(h);
-    expect(r.flowers).toHaveLength(2);
   });
 
   it('ignores Hive-sourced items in incoming', () => {
@@ -40,11 +40,9 @@ describe('mergeTodoist', () => {
     expect(r.added).toBe(0);
   });
 
-  it('marks missing Todoist flowers gone instead of removing them', () => {
-    const r = mergeTodoist([td('1'), td('2')], [td('2')]);
-    expect(r.flowers).toHaveLength(2);
-    expect(r.flowers[0].goneFromTodoist).toBe(true);
-    expect(r.flowers[1].goneFromTodoist).toBeUndefined();
+  it('removes Todoist flowers Todoist no longer returns (completed / rescheduled)', () => {
+    const r = mergeTodoist([td('1'), hive('a'), td('2')], [td('2')]);
+    expect(r.flowers.map((f) => f.id)).toEqual(['hive:a', 'todoist:2']);
     expect(r.gone).toBe(1);
   });
 
@@ -69,7 +67,7 @@ describe('mergeTodoist', () => {
     expect(mergeTodoist([td('1', { daysLate: 3 })], [td('1')]).flowers[0].daysLate).toBeUndefined();
   });
 
-  it('un-gones a flower that comes back', () => {
+  it('clears an old gone flag on a flower Todoist still returns', () => {
     const r = mergeTodoist([td('1', { goneFromTodoist: true })], [td('1')]);
     expect(r.flowers[0].goneFromTodoist).toBeUndefined();
   });
