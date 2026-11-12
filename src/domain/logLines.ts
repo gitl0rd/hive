@@ -14,8 +14,8 @@ export const log = {
   removed: (now: Date, title: string) => `${hhmm(now)} > rm ${title.toLowerCase()} --today`,
   done: (now: Date, title: string) => `${hhmm(now)} > done ${title.toLowerCase()}`,
   nothingToSpin: (now: Date) => `${hhmm(now)} > no flowers to spin`,
-  sync: (now: Date, added: number, hiveKept: number) =>
-    `${hhmm(now)} > sync todoist ... +${added} new, ${hiveKept} hive kept`,
+  sync: (now: Date, added: number, hiveKept: number, gone = 0) =>
+    `${hhmm(now)} > sync todoist ... +${added} new, ${gone ? `-${gone} gone, ` : ''}${hiveKept} hive kept`,
   added: (now: Date, title: string) => `${hhmm(now)} > add "${title.toLowerCase()}" ... ok`,
   deleted: (now: Date, title: string) => `${hhmm(now)} > del "${title.toLowerCase()}"`,
   shuffled: (now: Date) => `${hhmm(now)} > shuffle comb ... ok`,

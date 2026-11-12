@@ -134,7 +134,7 @@ export function TodayList({
         accessibilityLabel="Sync Todoist"
       />
       <Text style={[styles.note, { fontSize: fontSize - 6 }]}>
-        PULLS NEW TASKS ONLY · HIVE TASKS KEPT
+        DONE TASKS LEAVE · HIVE TASKS KEPT
       </Text>
     </View>
   );

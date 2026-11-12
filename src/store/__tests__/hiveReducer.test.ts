@@ -86,18 +86,21 @@ describe('hiveReducer', () => {
     expect(boardFlowers(s).map((f) => f.id)).toEqual(['hive:b']);
   });
 
-  it('sync is add-only, logs, and never touches Hive tasks', () => {
+  it('sync adds new tasks, removes ones Todoist dropped, and never touches Hive tasks', () => {
     let s = withTasks();
+    s = hiveReducer(s, { type: 'toggle', id: 'todoist:1' });
+    s = hiveReducer(s, { type: 'toggle', id: 'hive:a' });
     const tasksBefore = s.tasks;
     s = hiveReducer(s, { type: 'synced', incoming: [td('2'), td('3')], todoistDone: 4, now });
     expect(s.tasks).toBe(tasksBefore);
-    expect(s.day.todoistFlowers.map((f) => [f.id, !!f.goneFromTodoist])).toEqual([
-      ['todoist:1', true],
-      ['todoist:2', false],
-      ['todoist:3', false],
-    ]);
+    expect(s.day.todoistFlowers.map((f) => f.id)).toEqual(['todoist:2', 'todoist:3']);
+    expect(s.day.excluded).toEqual(['hive:a']);
     expect(s.day.todoistDone).toBe(4);
-    expect(s.day.log[s.day.log.length - 1]).toBe('09:30 > sync todoist ... +1 new, 2 hive kept');
+    expect(s.day.log[s.day.log.length - 1]).toBe(
+      '09:30 > sync todoist ... +1 new, -1 gone, 2 hive kept',
+    );
+    s = hiveReducer(s, { type: 'synced', incoming: [td('2'), td('3')], now });
+    expect(s.day.log[s.day.log.length - 1]).toBe('09:30 > sync todoist ... +0 new, 2 hive kept');
   });
 
   it('boot sync adds the startup lines', () => {

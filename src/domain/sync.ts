@@ -1,4 +1,5 @@
-// Add-only Todoist sync (docs/PLAN.md §6 "Sync"). Never removes anything; never touches Hive flowers.
+// Todoist sync (docs/PLAN.md §6 "Sync"). Adds new Todoist tasks, drops Todoist tasks Todoist no
+// longer returns as today/overdue (completed, deleted or rescheduled). Never touches Hive flowers.
 
 import type { Flower } from './types';
 
@@ -6,7 +7,7 @@ export interface MergeResult {
   flowers: Flower[];
   /** Incoming Todoist flowers that weren't on the board */
   added: number;
-  /** Todoist flowers on the board that Todoist no longer returns (now marked gone) */
+  /** Todoist flowers on the board that Todoist no longer returns (removed) */
   gone: number;
 }
 
@@ -17,23 +18,27 @@ export function mergeTodoist(current: readonly Flower[], incoming: readonly Flow
   const currentIds = new Set(current.map((f) => f.id));
   let gone = 0;
 
-  const flowers = current.map((f): Flower => {
-    if (f.source !== 'todoist') return f;
+  const flowers: Flower[] = [];
+  for (const f of current) {
+    if (f.source !== 'todoist') {
+      flowers.push(f);
+      continue;
+    }
     const fresh = incomingById.get(f.id);
     if (!fresh) {
       gone++;
-      return f.goneFromTodoist ? f : { ...f, goneFromTodoist: true };
+      continue;
     }
     const { goneFromTodoist: _wasGone, daysLate: _oldLate, ...rest } = f;
-    return {
+    flowers.push({
       ...rest,
       title: fresh.title,
       projectKey: fresh.projectKey,
       projectName: fresh.projectName,
       color: fresh.color,
       ...(fresh.daysLate ? { daysLate: fresh.daysLate } : {}),
-    };
-  });
+    });
+  }
 
   let added = 0;
   for (const f of incomingById.values()) {
