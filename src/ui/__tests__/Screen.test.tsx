@@ -71,6 +71,8 @@ describe('Screen (Demo mode)', () => {
     check();
     await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));
     check();
+    await fireEvent.press(screen.getByRole('tab', { name: 'FLIP' }));
+    check();
     await fireEvent.press(screen.getByLabelText('Settings'));
     check();
   });

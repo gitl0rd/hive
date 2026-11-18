@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ActionRow } from './ActionRow';
+import { CoinPanel } from './CoinFlip';
 import { CombButton } from './CombButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
@@ -14,6 +15,7 @@ import { TodayList } from './TodayList';
 import { sizes } from './theme';
 import { useTheme } from './ThemeContext';
 import type { BoardModel } from './useBoard';
+import type { CoinModel } from './useCoin';
 
 /** App-level bits the layouts show: Demo marker, settings cog. */
 export interface Chrome {
@@ -21,15 +23,24 @@ export interface Chrome {
   onSettings: () => void;
 }
 
-type Tab = 'spin' | 'today' | 'log';
+type Tab = 'spin' | 'today' | 'log' | 'flip';
 
 /** K wrist unit + flight log (390×844 reference). */
-export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chrome }) {
+export function MobileLayout({
+  board,
+  coin,
+  chrome,
+}: {
+  board: BoardModel;
+  coin: CoinModel;
+  chrome: Chrome;
+}) {
   const words = useTheme().theme.words;
   const tabs = [
     { id: 'spin' as const, label: words.spinTab },
     { id: 'today' as const, label: 'TODAY' },
     { id: 'log' as const, label: 'LOG' },
+    { id: 'flip' as const, label: 'FLIP' },
   ];
   const [tab, setTab] = useState<Tab>('spin');
   const size = sizes.mobile;
@@ -116,6 +127,10 @@ export function MobileLayout({ board, chrome }: { board: BoardModel; chrome: Chr
             highlightId={winner?.id}
             locked={board.locked}
           />
+        </View>
+      ) : tab === 'flip' ? (
+        <View style={styles.panel}>
+          <CoinPanel coin={coin} />
         </View>
       ) : (
         <View style={styles.panel}>
