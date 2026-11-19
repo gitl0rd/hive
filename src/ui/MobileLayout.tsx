@@ -8,8 +8,8 @@ import { TermButton } from './Button';
 import { Comb } from './Comb';
 import { FlightLog, winnerHeader } from './FlightLog';
 import { Footer } from './Footer';
-import { Frame } from './Frame';
 import { History } from './History';
+import { LogWindow } from './LogWindow';
 import { BracketTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import { sizes } from './theme';
@@ -21,6 +21,9 @@ import type { CoinModel } from './useCoin';
 export interface Chrome {
   demo: boolean;
   onSettings: () => void;
+  /** Flight log folded to its title bar (persisted in settings) */
+  logCollapsed: boolean;
+  onToggleLog: () => void;
 }
 
 type Tab = 'spin' | 'today' | 'log' | 'flip';
@@ -78,13 +81,18 @@ export function MobileLayout({
               </View>
             ) : null}
           </View>
-          <Frame title={words.log} style={styles.log}>
+          <LogWindow
+            collapsed={chrome.logCollapsed}
+            onToggle={chrome.onToggleLog}
+            lastLine={board.log[board.log.length - 1]}
+            style={chrome.logCollapsed ? styles.logCollapsed : styles.log}
+          >
             <FlightLog
               lines={board.log}
               showCursor={!flying}
               header={winner ? winnerHeader(winner, 40, 20) : undefined}
             />
-          </Frame>
+          </LogWindow>
           {winner ? (
             <View style={styles.actions}>
               <ActionRow
@@ -155,6 +163,7 @@ const styles = StyleSheet.create({
   comb: { flex: 1, minHeight: 200 },
   cornerBtn: { position: 'absolute', right: 0, bottom: 0 },
   log: { height: 206, marginTop: 8 },
+  logCollapsed: { marginTop: 8 },
   spin: { marginHorizontal: 18, marginTop: 14, marginBottom: 6 },
   actions: { marginTop: 14, marginBottom: 8 },
   panel: { flex: 1, paddingTop: 10, minHeight: 0 },

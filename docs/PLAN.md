@@ -281,3 +281,7 @@ Owner request: a coin flip with a Google-style toss animation; each side can sta
 - `src/domain/coin.ts` (pure, tested): `planFlip(rng, from)` = fair 50/50 side + 5–6 full turns with the half-turn parity that lands on it, 1700ms; `coinPose(plan, t)` = angle (ease-out), lift (parabola), visible face (swaps each time the coin passes edge-on), squash = |cos|. The UI (`src/ui/useCoin.ts`, `CoinFlip.tsx`) plays it with `requestAnimationFrame`: face squashed vertically, a rim disc offset behind it, the coin rising/growing, a table shadow shrinking.
 - Faces: blank label → heads = pixel profile head, tails = the theme's sprite (bee / winged brain); a typed label replaces the icon. Labels persist under `hive.coin` (device only, never Todoist). Tap the coin or `▶ FLIP`. Result line in inverse video + this session's tally (`H 03 · T 02` and the last 12).
 - Reduced motion lands instantly; haptic `Medium` on landing (native).
+
+## 11. Collapsible flight log (post-v1)
+
+Owner request. The log window's title tag (`FLIGHT.LOG ▾` / `▸`) folds the window to one line showing the newest entry (inverse when it's a landing) and back. Mobile: the comb takes the freed height. Desktop: the TODAY/HISTORY/FLIP window does. Remembered across restarts in settings (`logCollapsed`).

@@ -11,6 +11,7 @@ import { FlightLog, winnerHeader } from './FlightLog';
 import { Footer } from './Footer';
 import { Frame } from './Frame';
 import { History } from './History';
+import { LogWindow } from './LogWindow';
 import { FrameTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import type { ThemeTokens } from '../themes';
@@ -152,14 +153,21 @@ export function DesktopLayout({
               <CoinPanel coin={coin} fontSize={22} buttonHeight={52} buttonFontSize={28} compact />
             )}
           </Frame>
-          <Frame title={words.log} tagSize={22} style={{ height: logHeight }}>
+          <LogWindow
+            collapsed={chrome.logCollapsed}
+            onToggle={chrome.onToggleLog}
+            lastLine={board.log[board.log.length - 1]}
+            tagSize={22}
+            lineSize={14}
+            style={chrome.logCollapsed ? undefined : { height: logHeight }}
+          >
             <FlightLog
               lines={board.log}
               fontSize={14}
               showCursor={!flying}
               header={winner ? winnerHeader(winner, 52, 24) : undefined}
             />
-          </Frame>
+          </LogWindow>
         </View>
       </View>
 

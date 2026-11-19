@@ -13,6 +13,8 @@ export interface Settings {
   reducedMotion: boolean;
   /** Look and wording (src/themes) */
   theme: ThemeId;
+  /** Flight log window folded down to its title bar */
+  logCollapsed: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   haptics: true,
   reducedMotion: false,
   theme: DEFAULT_THEME_ID,
+  logCollapsed: false,
 };
 const KEY = 'hive.settings';
 
@@ -34,6 +37,8 @@ export async function loadSettings(): Promise<Settings> {
       reducedMotion:
         typeof s.reducedMotion === 'boolean' ? s.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
       theme: isThemeId(s.theme) ? s.theme : DEFAULT_SETTINGS.theme,
+      logCollapsed:
+        typeof s.logCollapsed === 'boolean' ? s.logCollapsed : DEFAULT_SETTINGS.logCollapsed,
     };
   } catch {
     return DEFAULT_SETTINGS;

@@ -15,6 +15,7 @@ const settings = (over: Partial<Settings> = {}): Settings => ({
   haptics: false,
   reducedMotion: false,
   theme: 'hive',
+  logCollapsed: false,
   ...over,
 });
 
@@ -110,6 +111,33 @@ describe('Screen (Demo mode)', () => {
   });
 });
 
+describe('Screen log window', () => {
+  it('the log title folds the log and saves it in settings', async () => {
+    const onSettingsChange = jest.fn();
+    await render(
+      <Screen
+        mode="demo"
+        token={null}
+        settings={settings()}
+        onSettingsChange={onSettingsChange}
+        onReplaceToken={jest.fn()}
+        onForgetToken={jest.fn()}
+        onLeaveDemo={jest.fn()}
+      />,
+    );
+    await fireEvent.press(screen.getByLabelText('Collapse flight log'));
+    expect(onSettingsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ logCollapsed: true }),
+    );
+  });
+
+  it('starts folded when settings say so', async () => {
+    await renderDemo({ logCollapsed: true });
+    expect(screen.getByLabelText('Expand flight log')).toBeTruthy();
+    expect(screen.getByText(/ready\./)).toBeTruthy(); // newest line still shows
+  });
+});
+
 describe('Screen themes', () => {
   it('settings switch the theme', async () => {
     const onSettingsChange = jest.fn();
@@ -150,7 +178,7 @@ describe('Screen themes', () => {
       expect(screen.getByLabelText("9 of 9 thoughts in today's spin")).toBeTruthy(),
     );
     expect(screen.getByText('BRAIN·HIVE DEMO')).toBeTruthy();
-    expect(screen.getByText('SYNAPSE.LOG')).toBeTruthy();
+    expect(screen.getByText('SYNAPSE.LOG ▾')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'THINK' })).toBeTruthy();
 
     await fireEvent.press(screen.getByLabelText('Think'));

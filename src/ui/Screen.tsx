@@ -46,7 +46,13 @@ export function Screen(props: ScreenProps) {
     haptics: settings.haptics,
     reducedMotion: settings.reducedMotion || osReduceMotion,
   });
-  const chrome = { demo: mode === 'demo', onSettings: () => setCfgOpen(true) };
+  const chrome = {
+    demo: mode === 'demo',
+    onSettings: () => setCfgOpen(true),
+    logCollapsed: settings.logCollapsed,
+    onToggleLog: () =>
+      props.onSettingsChange({ ...settings, logCollapsed: !settings.logCollapsed }),
+  };
 
   return (
     <View style={styles.fill}>
