@@ -67,6 +67,7 @@ export function MobileLayout({
               excluded={board.excluded}
               size={size}
               spin={spin}
+              onToggle={actions.toggle}
               emptyMessage={
                 board.ready && board.flowers.length === 0 ? words.emptyBoard : undefined
               }

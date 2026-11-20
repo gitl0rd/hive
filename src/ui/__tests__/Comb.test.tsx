@@ -61,3 +61,44 @@ describe('labelMetrics', () => {
     expect(m.label).toBeLessThanOrEqual(sizes.mobile.cellWidth / 4.2);
   });
 });
+
+describe('Comb cell taps', () => {
+  const layout = layoutBoard(11, layoutItems(sampleFlowers));
+  const sized = async () =>
+    fireEvent(screen.getByTestId('comb'), 'layout', {
+      nativeEvent: { layout: { width: 340, height: 330, x: 0, y: 0 } },
+    });
+
+  it('tapping a cell toggles that flower', async () => {
+    const onToggle = jest.fn();
+    await render(
+      <Comb
+        flowers={sampleFlowers}
+        layout={layout}
+        excluded={new Set()}
+        size={sizes.mobile}
+        onToggle={onToggle}
+      />,
+    );
+    await sized();
+    const f = sampleFlowers[2];
+    await fireEvent.press(screen.getByTestId(`cell-${f.id}`));
+    expect(onToggle).toHaveBeenCalledWith(f.id);
+  });
+
+  it('cells are inert while the bee is in flight', async () => {
+    const onToggle = jest.fn();
+    await render(
+      <Comb
+        flowers={sampleFlowers}
+        layout={layout}
+        excluded={new Set()}
+        size={sizes.mobile}
+        onToggle={onToggle}
+        spin={{ phase: 'flying', bee: { from: -1, to: 0, step: 2 }, trail: [0], winner: -1 }}
+      />,
+    );
+    await sized();
+    expect(screen.getByTestId(`cell-${sampleFlowers[0].id}`).props.onPress).toBeUndefined();
+  });
+});
