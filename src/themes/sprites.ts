@@ -2,7 +2,7 @@
 //   B body (screen colour)   W wing (wing colour, translucent)   s background colour   . empty
 
 export interface Sprite {
-  id: 'bee' | 'brain';
+  id: 'bee' | 'brain' | 'head';
   w: number;
   h: number;
   rows: readonly string[];
@@ -63,3 +63,26 @@ export function spriteRuns(
   });
   return out;
 }
+
+/** 11×13 profile head facing right, for the heads side of the coin (only B and s pixels). */
+export const COIN_HEAD: Sprite = {
+  id: 'head',
+  w: 11,
+  h: 13,
+  wingOpacity: 1,
+  rows: [
+    '...BBBBB...',
+    '.BBBBBBBBB.',
+    '.BBBBBBBBB.',
+    'BBBBBBBBBB.',
+    'BBBBBBBsBBB',
+    'BBBBBBBBBBB',
+    'BBBBBBBBBBB',
+    '.BBBBBBBBB.',
+    '.BBBBBBsss.',
+    '..BBBBBBB..',
+    '...BBBBB...',
+    '...BBBBB...',
+    '.BBBBBBBBB.',
+  ],
+};

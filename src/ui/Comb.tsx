@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { type LayoutChangeEvent, Platform, StyleSheet, Text, View } from 'react-native';
 import Svg, { G, Line, Polygon, Polyline, Text as SvgText } from 'react-native-svg';
 
 import { projectEdges } from '../domain/edges';
@@ -29,6 +29,8 @@ export interface CombProps {
   spin?: SpinView;
   /** Shown instead of the board (e.g. no flowers) */
   emptyMessage?: string;
+  /** Tap a cell to include/exclude it (same as its TODAY checkbox). Omit to make cells inert. */
+  onToggle?: (flowerId: string) => void;
 }
 
 const IDLE_VIEW: SpinView = {
@@ -53,6 +55,7 @@ export function Comb({
   size,
   spin = IDLE_VIEW,
   emptyMessage,
+  onToggle,
 }: CombProps) {
   const t = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -152,6 +155,7 @@ export function Comb({
                   opacity={opacity}
                   struck={excluded.has(f.id)}
                   state={isWin ? 'winner' : here ? 'bee' : 'idle'}
+                  onPress={onToggle && !flying ? () => onToggle(f.id) : undefined}
                 />
               );
             })}
@@ -165,7 +169,7 @@ export function Comb({
               const dim = isDim(f) || (landed && spin.winner !== e.cellIndex);
               const color = itemColor(e.color, f.source === 'hive', t);
               return (
-                <G key={`${e.cellIndex}-${e.dir}`} opacity={dim ? 0.3 : 1}>
+                <G key={`${e.cellIndex}-${e.dir}`} opacity={dim ? 0.3 : 1} pointerEvents="none">
                   <Line
                     x1={p.x}
                     y1={p.y}
@@ -259,6 +263,7 @@ function Cell({
   opacity,
   struck,
   state,
+  onPress,
 }: {
   t: ThemeTokens;
   text: LabelMetrics;
@@ -268,6 +273,7 @@ function Cell({
   opacity: number;
   struck: boolean;
   state: CellState;
+  onPress?: () => void;
 }) {
   const corners = hexCorners(center, size.cellWidth);
   // Inset ring so the 1.5px stroke stays inside the cell
@@ -295,7 +301,12 @@ function Cell({
   const stroke = state === 'idle' ? t.dimRing : t.screen;
 
   return (
-    <G opacity={opacity}>
+    <G
+      opacity={opacity}
+      onPress={onPress}
+      testID={`cell-${flower.id}`}
+      style={onPress && Platform.OS === 'web' ? ({ cursor: 'pointer' } as object) : undefined}
+    >
       {isWin ? (
         <Polygon points={pts} fill="none" stroke={t.screen} strokeWidth={16} strokeOpacity={0.25} />
       ) : null}

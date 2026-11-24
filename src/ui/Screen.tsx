@@ -10,6 +10,7 @@ import { MobileLayout } from './MobileLayout';
 import { SettingsPanel } from './SettingsPanel';
 import { layout } from './theme';
 import { useBoard } from './useBoard';
+import { useCoin } from './useCoin';
 
 export interface ScreenProps {
   /** 'demo' uses sample data in its own storage; 'todoist' reads the API with `token` */
@@ -41,14 +42,24 @@ export function Screen(props: ScreenProps) {
     reducedMotion: settings.reducedMotion || osReduceMotion,
     ...(mode === 'demo' ? { ns: 'hive.demo', seedTaskTitles: sampleHiveTitles } : { ns: 'hive' }),
   });
-  const chrome = { demo: mode === 'demo', onSettings: () => setCfgOpen(true) };
+  const coin = useCoin({
+    haptics: settings.haptics,
+    reducedMotion: settings.reducedMotion || osReduceMotion,
+  });
+  const chrome = {
+    demo: mode === 'demo',
+    onSettings: () => setCfgOpen(true),
+    logCollapsed: settings.logCollapsed,
+    onToggleLog: () =>
+      props.onSettingsChange({ ...settings, logCollapsed: !settings.logCollapsed }),
+  };
 
   return (
     <View style={styles.fill}>
       {desktop ? (
-        <DesktopLayout board={board} chrome={chrome} />
+        <DesktopLayout board={board} coin={coin} chrome={chrome} />
       ) : (
-        <MobileLayout board={board} chrome={chrome} />
+        <MobileLayout board={board} coin={coin} chrome={chrome} />
       )}
       {cfgOpen ? (
         <SettingsPanel

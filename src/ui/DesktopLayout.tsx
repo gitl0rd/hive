@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 
 import { pad2 } from '../domain/labels';
 import { ActionRow } from './ActionRow';
+import { CoinPanel } from './CoinFlip';
 import { CombButton } from './CombButton';
 import { TermButton } from './Button';
 import { Comb } from './Comb';
@@ -10,6 +11,7 @@ import { FlightLog, winnerHeader } from './FlightLog';
 import { Footer } from './Footer';
 import { Frame } from './Frame';
 import { History } from './History';
+import { LogWindow } from './LogWindow';
 import { FrameTabs } from './Tabs';
 import { TodayList } from './TodayList';
 import type { ThemeTokens } from '../themes';
@@ -17,11 +19,20 @@ import { fonts, layout, sizes } from './theme';
 import { useTheme, useThemedStyles } from './ThemeContext';
 import type { Chrome } from './MobileLayout';
 import type { BoardModel } from './useBoard';
+import type { CoinModel } from './useCoin';
 
-type Tab = 'today' | 'history';
+type Tab = 'today' | 'history' | 'flip';
 
 /** K desktop (≥ 900px). Below ~1000px the right column wraps under the comb. */
-export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Chrome }) {
+export function DesktopLayout({
+  board,
+  coin,
+  chrome,
+}: {
+  board: BoardModel;
+  coin: CoinModel;
+  chrome: Chrome;
+}) {
   const t = useTheme();
   const words = t.theme.words;
   const styles = useThemedStyles(makeStyles);
@@ -37,11 +48,14 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
   const tabs = [
     { id: 'today' as const, label: `TODAY · ${pad2(board.counts.flowers)}` },
     { id: 'history' as const, label: 'HISTORY' },
+    { id: 'flip' as const, label: 'FLIP' },
   ];
 
   // Side by side: fill the window exactly (definite height, so lists scroll inside their windows).
   // Wrapped (< 1000px): stack and let the page scroll.
-  const logHeight = wrapped ? 290 : Math.max(180, Math.min(290, Math.round(height * 0.32)));
+  // The coin needs room to fly, so FLIP shrinks the log.
+  const logHeight =
+    tab === 'flip' ? 170 : wrapped ? 290 : Math.max(180, Math.min(290, Math.round(height * 0.32)));
 
   const content = (
     <>
@@ -78,6 +92,7 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
               excluded={board.excluded}
               size={size}
               spin={spin}
+              onToggle={actions.toggle}
               emptyMessage={
                 board.ready && board.flowers.length === 0 ? words.emptyBoard : undefined
               }
@@ -133,18 +148,27 @@ export function DesktopLayout({ board, chrome }: { board: BoardModel; chrome: Ch
                 highlightId={winner?.id}
                 locked={board.locked}
               />
-            ) : (
+            ) : tab === 'history' ? (
               <History landings={board.history} fontSize={24} onDelete={actions.deleteLanding} />
+            ) : (
+              <CoinPanel coin={coin} fontSize={22} buttonHeight={52} buttonFontSize={28} compact />
             )}
           </Frame>
-          <Frame title={words.log} tagSize={22} style={{ height: logHeight }}>
+          <LogWindow
+            collapsed={chrome.logCollapsed}
+            onToggle={chrome.onToggleLog}
+            lastLine={board.log[board.log.length - 1]}
+            tagSize={22}
+            lineSize={14}
+            style={chrome.logCollapsed ? undefined : { height: logHeight }}
+          >
             <FlightLog
               lines={board.log}
               fontSize={14}
               showCursor={!flying}
               header={winner ? winnerHeader(winner, 52, 24) : undefined}
             />
-          </Frame>
+          </LogWindow>
         </View>
       </View>
 

@@ -15,6 +15,7 @@ const settings = (over: Partial<Settings> = {}): Settings => ({
   haptics: false,
   reducedMotion: false,
   theme: 'hive',
+  logCollapsed: false,
   ...over,
 });
 
@@ -71,6 +72,8 @@ describe('Screen (Demo mode)', () => {
     check();
     await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));
     check();
+    await fireEvent.press(screen.getByRole('tab', { name: 'FLIP' }));
+    check();
     await fireEvent.press(screen.getByLabelText('Settings'));
     check();
   });
@@ -105,6 +108,33 @@ describe('Screen (Demo mode)', () => {
     expect(screen.getByText(/reset comb \.\.\. bee home/)).toBeTruthy();
     await fireEvent.press(screen.getByRole('tab', { name: 'LOG' }));
     expect(screen.getAllByText('DEL')).toHaveLength(1); // the landing stays in history
+  });
+});
+
+describe('Screen log window', () => {
+  it('the log title folds the log and saves it in settings', async () => {
+    const onSettingsChange = jest.fn();
+    await render(
+      <Screen
+        mode="demo"
+        token={null}
+        settings={settings()}
+        onSettingsChange={onSettingsChange}
+        onReplaceToken={jest.fn()}
+        onForgetToken={jest.fn()}
+        onLeaveDemo={jest.fn()}
+      />,
+    );
+    await fireEvent.press(screen.getByLabelText('Collapse flight log'));
+    expect(onSettingsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ logCollapsed: true }),
+    );
+  });
+
+  it('starts folded when settings say so', async () => {
+    await renderDemo({ logCollapsed: true });
+    expect(screen.getByLabelText('Expand flight log')).toBeTruthy();
+    expect(screen.getByText(/ready\./)).toBeTruthy(); // newest line still shows
   });
 });
 
@@ -148,7 +178,7 @@ describe('Screen themes', () => {
       expect(screen.getByLabelText("9 of 9 thoughts in today's spin")).toBeTruthy(),
     );
     expect(screen.getByText('BRAIN·HIVE DEMO')).toBeTruthy();
-    expect(screen.getByText('SYNAPSE.LOG')).toBeTruthy();
+    expect(screen.getByText('SYNAPSE.LOG ▾')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'THINK' })).toBeTruthy();
 
     await fireEvent.press(screen.getByLabelText('Think'));
