@@ -34,7 +34,7 @@ export function CrtBackdrop({ desktop = false }: { desktop?: boolean }) {
  * CRT overlay: scanlines + vignette + rounded bezel with a faint inner glow.
  * Sits above everything and never takes touches.
  */
-export function Crt({ size }: { size: SizeSet }) {
+export function Crt({ size, bezel = true }: { size: SizeSet; bezel?: boolean }) {
   const styles = useThemedStyles(makeStyles);
   const p = crt.scanlinePeriod;
   return (
@@ -52,7 +52,12 @@ export function Crt({ size }: { size: SizeSet }) {
         <Rect width="100%" height="100%" fill="url(#scan)" />
         <Rect width="100%" height="100%" fill="url(#vig)" />
       </Svg>
-      <View style={[styles.bezel, { margin: size.bezelInset, borderRadius: size.bezelRadius }]} />
+      {bezel ? (
+        <View
+          style={[styles.bezel, { margin: size.bezelInset, borderRadius: size.bezelRadius }]}
+          testID="crt-bezel"
+        />
+      ) : null}
     </View>
   );
 }

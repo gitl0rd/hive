@@ -293,3 +293,7 @@ Owner request. Tapping/clicking a cell on the board does the same as its TODAY c
 ## 13. Haptics on the web build (post-v1)
 
 Owner request (iPhone PWA). `src/ui/haptics.ts` (native, expo-haptics) / `haptics.web.ts`. Web: `navigator.vibrate` where it exists (Android Chrome); otherwise the iOS Safari 18+ trick: a hidden `<input type="checkbox" switch>` whose label is clicked plays the system switch tick. One strength only, and iOS only plays it straight after a real touch, so the landing bump (seconds later) may be silent on iPhone; undocumented, may change. Light tick on SPIN, hex taps and coin flips (all platforms); heavy on landing, medium on coin landing. The settings toggle is now just `HAPTICS`.
+
+## 14. Phone home-screen web app: no double border (post-v1)
+
+Owner request (iPhone PWA screenshot). `apple-mobile-web-app-status-bar-style` is `black-translucent`, so the app runs up behind the clock (SafeAreaView keeps content clear) instead of sitting under a black band. When running as an installed phone web app (`navigator.standalone` on iOS, or `display-mode: standalone` + coarse pointer), the drawn CRT bezel line is left out: the phone's own rounded screen edge is the bezel. Scanlines and vignette stay. Browser tabs, desktop and native keep the bezel. iOS reads the status-bar setting at install time, so re-add to the home screen.
