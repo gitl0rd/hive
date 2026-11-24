@@ -289,3 +289,7 @@ Owner request. The log window's title tag (`FLIGHT.LOG ▾` / `▸`) folds the w
 ## 12. Tap a hex to toggle it (post-v1)
 
 Owner request. Tapping/clicking a cell on the board does the same as its TODAY checkbox: excluded cells dim with a struck label and the bee skips them. Cells are inert while the bee is in flight (same lock as TODAY edits). Project borders don't catch taps; the cursor is a pointer on web.
+
+## 13. Haptics on the web build (post-v1)
+
+Owner request (iPhone PWA). `src/ui/haptics.ts` (native, expo-haptics) / `haptics.web.ts`. Web: `navigator.vibrate` where it exists (Android Chrome); otherwise the iOS Safari 18+ trick: a hidden `<input type="checkbox" switch>` whose label is clicked plays the system switch tick. One strength only, and iOS only plays it straight after a real touch, so the landing bump (seconds later) may be silent on iPhone; undocumented, may change. Light tick on SPIN, hex taps and coin flips (all platforms); heavy on landing, medium on coin landing. The settings toggle is now just `HAPTICS`.

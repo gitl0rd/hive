@@ -1,6 +1,4 @@
-import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform } from 'react-native';
 
 import {
   type CoinFlipPlan,
@@ -16,6 +14,7 @@ import {
   loadCoinLabels,
   saveCoinLabels,
 } from '../store/coinLabels';
+import { haptic } from './haptics';
 
 export interface CoinModel {
   pose: CoinPose;
@@ -75,15 +74,14 @@ export function useCoin({
       setUp(side);
       setResult(side);
       setRecent((r) => [side, ...r].slice(0, RECENT_MAX));
-      if (haptics && Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-      }
+      if (haptics) haptic('medium');
     },
     [haptics],
   );
 
   const flip = useCallback(() => {
     if (plan) return;
+    if (haptics) haptic('tap'); // straight from the press, so iOS web plays it
     const next = planFlip(Math.random, up);
     if (reducedMotion) {
       land(next.side);
@@ -105,7 +103,7 @@ export function useCoin({
       frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
-  }, [plan, up, reducedMotion, land]);
+  }, [plan, up, reducedMotion, land, haptics]);
 
   return {
     pose: plan ? coinPose(plan, t) : restingPose(up),

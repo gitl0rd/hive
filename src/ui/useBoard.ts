@@ -1,6 +1,5 @@
 // Board state + spin playback for the UI. Domain functions decide; this hook only plays them.
 // M5 adds persistence (Hive tasks, history, day state) around the same reducer.
-import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Linking, Platform } from 'react-native';
 
@@ -12,6 +11,7 @@ import { instantTimeline, spinTimeline } from '../domain/timeline';
 import type { Flower, Landing } from '../domain/types';
 import { type HiveOptions, type TodoistSource, useHive } from '../store/useHive';
 import { todoistAppUrl, todoistTaskId, todoistWebUrl } from '../todoist/links';
+import { haptic } from './haptics';
 
 export type Phase = 'idle' | 'flying' | 'landed';
 
@@ -117,6 +117,8 @@ export function useBoard({
 
   const spin = useCallback(() => {
     if (view.phase === 'flying') return;
+    // Tick straight from the press: iOS web only plays it inside the touch (see haptics.web.ts).
+    if (haptics) haptic('tap');
     const start = view.phase === 'landed' ? view.winner : -1;
     const plan = planSpin(layout, included, Math.random, start);
     const now = new Date();
@@ -155,8 +157,8 @@ export function useBoard({
                 `Landed on ${won.title}, ${won.projectName}`,
               );
             }
-            if (haptics && Platform.OS !== 'web') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+            if (haptics) {
+              haptic('heavy');
             }
           }
         }, ev.atMs),
@@ -180,7 +182,9 @@ export function useBoard({
     () => ({
       spin,
       toggle: (id: string) => {
-        if (!locked) dispatch({ type: 'toggle', id });
+        if (locked) return;
+        if (haptics) haptic('tap');
+        dispatch({ type: 'toggle', id });
       },
       add: (title: string) => {
         if (!locked) addTask(title);
@@ -220,6 +224,7 @@ export function useBoard({
       spin,
       winner,
       settle,
+      haptics,
       locked,
       dispatch,
       addTask,

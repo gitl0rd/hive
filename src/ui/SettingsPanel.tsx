@@ -101,12 +101,12 @@ export function SettingsPanel({
         <Pressable
           accessibilityRole="checkbox"
           accessibilityState={{ checked: haptics }}
-          accessibilityLabel="Haptics on landing"
+          accessibilityLabel="Haptics"
           onPress={() => onHaptics(!haptics)}
           style={styles.toggle}
         >
           <Text style={styles.line}>
-            {haptics ? '[x]' : '[ ]'} HAPTICS ON LANDING
+            {haptics ? '[x]' : '[ ]'} HAPTICS
             {Platform.OS === 'web' ? '  (PHONE ONLY)' : ''}
           </Text>
         </Pressable>
