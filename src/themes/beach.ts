@@ -19,7 +19,7 @@ export const beach: Theme = {
     wing: SEAFOAM,
   },
   words: {
-    brand: 'BEACH·OS',
+    brand: 'BEACH·HIVE',
     comb: 'SHORE.SYS',
     log: 'TIDE.LOG',
     phase: { ready: '● LOW TIDE', flying: '◌ GLIDING', landed: '■ LANDED' },
@@ -45,7 +45,7 @@ export const beach: Theme = {
   sprite: GULL,
   backdrop: 'waves',
   logRewrites: [
-    [/^HIVE\.EXE v2\.0$/, 'BEACH.OS v2.0'],
+    [/^HIVE\.EXE v2\.0$/, 'BEACH.HIVE v2.0'],
     [/^(\d\d:\d\d > )dispatch bee$/, '$1launch gull'],
     [/^(\s+)hop (\d+ {2})/, '$1glide $2'],
     [/^(\d\d:\d\d > \d+ )flower(s?) overdue$/, '$1shell$2 overdue'],

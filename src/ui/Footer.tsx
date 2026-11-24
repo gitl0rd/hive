@@ -7,7 +7,7 @@ import { itemColor, type ThemeTokens } from '../themes';
 import { fonts } from './theme';
 import { useTheme, useThemedStyles } from './ThemeContext';
 
-/** `HIVE·OS | meter | DONE NN`. One meter block per flower, filled if included, in its colour. */
+/** `BEE·HIVE | meter | DONE NN`. One meter block per flower, filled if included, in its colour. */
 export function Footer({
   label,
   flowers,

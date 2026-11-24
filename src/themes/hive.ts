@@ -16,7 +16,7 @@ export const hive: Theme = {
     wing: '#FFA526',
   },
   words: {
-    brand: 'HIVE·OS',
+    brand: 'BEE·HIVE',
     comb: 'COMB.SYS',
     log: 'FLIGHT.LOG',
     phase: { ready: '● READY', flying: '◌ IN FLIGHT', landed: '■ LANDED' },

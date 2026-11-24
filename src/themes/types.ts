@@ -27,7 +27,7 @@ export interface ThemePalette {
  * OPEN/DONE/REMOVE/AGAIN, token setup copy) is the same in every theme.
  */
 export interface ThemeWords {
-  /** Header + footer brand, e.g. HIVE·OS */
+  /** Header + footer brand, e.g. BEE·HIVE */
   brand: string;
   /** Comb window title */
   comb: string;

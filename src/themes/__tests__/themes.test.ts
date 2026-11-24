@@ -55,7 +55,7 @@ describe('theme directory', () => {
     expect(t.bg).toBe('#02121A');
     expect(t.screen).toBe('#FFD48A');
     expect(t.hive).toBe('#5FE6CF');
-    expect(t.theme.words.brand).toBe('BEACH·OS');
+    expect(t.theme.words.brand).toBe('BEACH·HIVE');
     expect(t.theme.words.spin).toBe('▶ SOAR');
     expect(t.theme.sprite).toBe(GULL);
     expect(t.theme.backdrop).toBe('waves');
@@ -107,7 +107,7 @@ describe('themeLogLine', () => {
 
   it('rewrites the bee words for beach', () => {
     const beach = getTheme('beach');
-    expect(themeLogLine(log.boot(), beach)).toBe('BEACH.OS v2.0');
+    expect(themeLogLine(log.boot(), beach)).toBe('BEACH.HIVE v2.0');
     expect(themeLogLine(log.dispatch(at), beach)).toBe('12:16 > launch gull');
     expect(themeLogLine(log.hop(3, 'Gym'), beach)).toBe('      glide 03  gym');
     expect(themeLogLine(log.landed(at, 'Swim', 'Life'), beach)).toBe('12:16 > LANDED: SWIM [LIFE]');

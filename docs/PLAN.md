@@ -228,19 +228,19 @@ Cells: hex ring 1.5px in `dim`; inner fill bg; label VT323 uppercase (21px mobil
 Pixel bee: 11×7 grid (scale 3–4px), crisp edges: two wing blocks (55% opacity), 8×5 body with two bg-colour stripes, 2×3 head with a bg eye pixel, 1px stinger. Flip horizontally when flying left. Counter-scale so it stays the same size when the board shrinks.
 
 ### Mobile layout (390×844 reference)
-Top → bottom: bracket tabs `SPIN · TODAY · LOG` (active tab boxed, line underneath) · stats `FLWR 07  LATE 03` · comb (fills ~330px tall) · FLIGHT.LOG box (~206px, title on the frame; on landing the winner's name shows big at its top) · `▶ SPIN` bar (or the 3 action buttons) · footer `HIVE·OS | meter | DONE 02`.
+Top → bottom: bracket tabs `SPIN · TODAY · LOG` (active tab boxed, line underneath) · stats `FLWR 07  LATE 03` · comb (fills ~330px tall) · FLIGHT.LOG box (~206px, title on the frame; on landing the winner's name shows big at its top) · `▶ SPIN` bar (or the 3 action buttons) · footer `BEE·HIVE | meter | DONE 02`.
 TODAY and LOG tabs replace the comb/log area.
 
 ### Desktop layout (≥ 900px)
-Header: `HIVE·OS // DAILY SPIN` left, `FLWR · LATE · DONE` right, rule under it.
+Header: `BEE·HIVE // DAILY SPIN` left, `FLWR · LATE · DONE` right, rule under it.
 Left: big `COMB.SYS` window (status on frame: ● READY / ◌ IN FLIGHT / ■ LANDED), comb centred, SPIN bar / action row under it.
 Right column: list window with frame tabs `TODAY · NN | HISTORY`, then `FLIGHT.LOG` window (~290px).
-Footer: `HIVE·OS v2 | meter | DONE NN`. Below ~1000px the right column wraps under the comb.
+Footer: `BEE·HIVE v2 | meter | DONE NN`. Below ~1000px the right column wraps under the comb.
 
 ### Token setup (first run)
-Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A small pixel-art settings cog in the footer (next to `HIVE·OS`; replaced the original `CFG` text at the owner's request) lets you replace or forget the token and toggle haptics.
+Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A small pixel-art settings cog in the footer (next to `BEE·HIVE`; replaced the original `CFG` text at the owner's request) lets you replace or forget the token and toggle haptics.
 
-Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. Settings (cog in the footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: settings cog > REPLACE TOKEN`.
+Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. Settings (cog in the footer, next to `BEE·HIVE`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: settings cog > REPLACE TOKEN`.
 
 ## 7b. Themes (post-v1)
 
