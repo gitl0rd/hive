@@ -9,7 +9,7 @@ import {
   themeLogLine,
   THEMES,
 } from '..';
-import { BEE, BRAIN, GULL, spriteRuns } from '../sprites';
+import { BEE, BRAIN, GULL, pixelFill, spriteRuns } from '../sprites';
 import { blend, hexToRgb } from '../tokens';
 
 const at = new Date(2026, 10, 10, 12, 16);
@@ -134,6 +134,18 @@ describe('sprites', () => {
   it.each([BEE, BRAIN, GULL])('$id rows match its size', (s) => {
     expect(s.rows).toHaveLength(s.h);
     for (const r of s.rows) expect(r).toHaveLength(s.w);
+  });
+
+  it.each([BEE, BRAIN, GULL])('$id uses only known pixel kinds', (s) => {
+    const known = new Set(['.', 'B', 'W', 's', ...Object.keys(s.paint ?? {})]);
+    for (const ch of s.rows.join('')) expect(known).toContain(ch);
+  });
+
+  it('paints theme inks and sprite colours', () => {
+    const ink = { B: '#111111', W: '#222222', s: '#333333' };
+    expect(pixelFill(GULL, 'W', ink)).toBe('#222222');
+    expect(pixelFill(GULL, 'Y', ink)).toBe('#FFC43C');
+    expect(pixelFill(BEE, 'B', ink)).toBe('#111111');
   });
 
   it('merges runs', () => {

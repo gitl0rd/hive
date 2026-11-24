@@ -6,7 +6,7 @@ import { type CoinSide, tally } from '../domain/coin';
 import { pad2 } from '../domain/labels';
 import { COIN_LABEL_MAX } from '../store/coinLabels';
 import type { ThemeTokens } from '../themes';
-import { COIN_HEAD, type Sprite, spriteRuns } from '../themes/sprites';
+import { COIN_HEAD, pixelFill, type Sprite, spriteRuns } from '../themes/sprites';
 import { TermButton } from './Button';
 import { fonts } from './theme';
 import { useTheme, useThemedStyles } from './ThemeContext';
@@ -257,7 +257,7 @@ function SpriteAt({
 }) {
   const th = useTheme();
   const px = span / sprite.w;
-  const fill = { B: th.screen, W: th.wing, s: th.bg } as const;
+  const ink = { B: th.screen, W: th.wing, s: th.bg };
   return (
     <G
       transform={`translate(${cx - (sprite.w * px) / 2} ${cy - (sprite.h * px) / 2}) scale(${px})`}
@@ -269,7 +269,7 @@ function SpriteAt({
           y={r.y}
           width={r.w}
           height={1}
-          fill={fill[r.kind]}
+          fill={pixelFill(sprite, r.kind, ink)}
           opacity={r.kind === 'W' ? sprite.wingOpacity : undefined}
         />
       ))}
