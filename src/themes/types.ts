@@ -1,13 +1,13 @@
-// What a theme is. Each theme is one file in this folder (hive.ts, brain.ts); index.ts lists them.
+// What a theme is. Each theme is one file in this folder (hive.ts, brain.ts, beach.ts); index.ts lists them.
 // Themes are pure data: colours, wording, sprite and icon names. The UI reads them through
 // ThemeProvider / useTheme (src/ui/ThemeContext.tsx).
 
 import type { Sprite } from './sprites';
 
-export type ThemeId = 'hive' | 'brain';
+export type ThemeId = 'hive' | 'brain' | 'beach';
 
 /** Faint pattern behind everything (src/ui/Backdrops.tsx) */
-export type Backdrop = 'none' | 'gyri';
+export type Backdrop = 'none' | 'gyri' | 'waves';
 
 export interface ThemePalette {
   /** Background */

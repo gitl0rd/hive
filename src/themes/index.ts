@@ -1,5 +1,6 @@
 // The theme directory. Add a theme: write <name>.ts next to hive.ts, add it to THEMES and ThemeId.
 
+import { beach } from './beach';
 import { brain } from './brain';
 import { hive } from './hive';
 import { type ThemeTokens, themeTokens } from './tokens';
@@ -10,7 +11,7 @@ export type { ThemeTokens } from './tokens';
 export { itemColor } from './tokens';
 export { themeLogLine } from './log';
 
-export const THEMES: readonly Theme[] = [hive, brain];
+export const THEMES: readonly Theme[] = [hive, brain, beach];
 export const DEFAULT_THEME_ID: ThemeId = 'hive';
 
 export function isThemeId(x: unknown): x is ThemeId {

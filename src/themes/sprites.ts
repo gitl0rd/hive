@@ -2,7 +2,7 @@
 //   B body (screen colour)   W wing (wing colour, translucent)   s background colour   . empty
 
 export interface Sprite {
-  id: 'bee' | 'brain' | 'head';
+  id: 'bee' | 'brain' | 'gull' | 'head';
   w: number;
   h: number;
   rows: readonly string[];
@@ -43,6 +43,23 @@ export const BRAIN: Sprite = {
     '..BBsBsBBsB..',
     '...BBBBBBB...',
     '......B......',
+  ],
+};
+
+/** 13×7 seagull gliding right: raised seafoam wing, round head with an eye, beak, tail. */
+export const GULL: Sprite = {
+  id: 'gull',
+  w: 13,
+  h: 7,
+  wingOpacity: 0.7,
+  rows: [
+    '.WW..........',
+    '..WWW........',
+    '...WWWW..BB..',
+    '....WWW.BBsB.',
+    'BB...WWBBBBBB',
+    '.BBBBBBBBBB..',
+    '...BBBBBB....',
   ],
 };
 
