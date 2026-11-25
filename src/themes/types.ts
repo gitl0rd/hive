@@ -7,7 +7,7 @@ import type { Sprite } from './sprites';
 export type ThemeId = 'hive' | 'brain' | 'beach';
 
 /** Faint pattern behind everything (src/ui/Backdrops.tsx) */
-export type Backdrop = 'none' | 'gyri' | 'waves';
+export type Backdrop = 'none' | 'gyri' | 'waves' | 'honeycomb';
 
 export interface ThemePalette {
   /** Background */

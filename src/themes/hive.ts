@@ -41,7 +41,7 @@ export const hive: Theme = {
   },
   sprite: BEE,
   coinHeads: COIN_FLOWER,
-  backdrop: 'none',
+  backdrop: 'honeycomb',
   logRewrites: [],
   icon: {
     native: null,

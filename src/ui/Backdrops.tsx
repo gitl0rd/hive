@@ -18,6 +18,39 @@ const GYRI =
 const WAVES =
   'M0 20 C 12 8, 23 8, 35 20 S 58 32, 70 20 S 93 8, 105 20 S 128 32, 140 20 M0 60 C 12 72, 23 72, 35 60 S 58 48, 70 60 S 93 72, 105 60 S 128 48, 140 60 M0 100 C 12 88, 23 88, 35 100 S 58 112, 70 100 S 93 88, 105 100 S 128 112, 140 100 M48 38 L 60 38 M112 80 L 124 80 M14 80 L 22 80';
 
+/**
+ * Honeycomb (bee), 140×120: flat-top hexagons, 2 columns × 3 rows per tile (each hex 46.7 wide,
+ * 40 tall, near enough regular) so the tile repeats seamlessly. Outlines only; shared edges are
+ * drawn twice, which the dot grid merges.
+ */
+const HONEYCOMB = (() => {
+  const rx = 140 / 6;
+  const hh = 20;
+  const parts: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 3; j++) {
+      const cx = 1.5 * rx * i;
+      const cy = 2 * hh * j + (i % 2 ? hh : 0);
+      const v = [
+        [cx + rx, cy],
+        [cx + rx / 2, cy + hh],
+        [cx - rx / 2, cy + hh],
+        [cx - rx, cy],
+        [cx - rx / 2, cy - hh],
+        [cx + rx / 2, cy - hh],
+        [cx + rx, cy],
+      ].map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`);
+      parts.push(
+        `M${v[0]} ${v
+          .slice(1)
+          .map((pt) => `L ${pt}`)
+          .join(' ')}`,
+      );
+    }
+  }
+  return parts.join(' ');
+})();
+
 /** Dot pitch, in tile units (140×120 tile = 35×30 dots). */
 const CELL = 4;
 const DOT_COLS = 140 / CELL;
@@ -28,6 +61,7 @@ const litCells = (d: string) =>
 const LIT: Record<Exclude<Backdrop, 'none'>, Set<string>> = {
   gyri: litCells(GYRI),
   waves: litCells(WAVES),
+  honeycomb: litCells(HONEYCOMB),
 };
 
 const ID = 'backdrop';
@@ -51,7 +85,7 @@ export function BackdropDefs({
       </Pattern>
     </Defs>
   );
-  // LED dot-matrix: a faint grid of dots, the ones on the pattern (brain folds, waves) lit brighter.
+  // LED dot-matrix: a faint grid of dots, the ones on the pattern (brain folds, waves, honeycomb) lit brighter.
   const lit = LIT[kind];
   const dots: React.ReactNode[] = [];
   for (let r = 0; r < DOT_ROWS; r++) {
