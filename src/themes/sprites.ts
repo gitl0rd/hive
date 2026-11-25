@@ -3,7 +3,7 @@
 // A sprite can add its own fixed-colour pixels in `paint` (the gull's white body, yellow beak).
 
 export interface Sprite {
-  id: 'bee' | 'brain' | 'gull' | 'head';
+  id: 'bee' | 'brain' | 'gull' | 'head' | 'flower' | 'palm';
   w: number;
   h: number;
   rows: readonly string[];
@@ -121,5 +121,55 @@ export const COIN_HEAD: Sprite = {
     '...BBBBB...',
     '...BBBBB...',
     '.BBBBBBBBB.',
+  ],
+};
+
+/** 11×15 flower for the heads side of the coin in BEE·HIVE: eight petals, dotted centre, stem. */
+export const COIN_FLOWER: Sprite = {
+  id: 'flower',
+  w: 11,
+  h: 15,
+  wingOpacity: 0.55,
+  rows: [
+    '....BBB....',
+    '...BBBBB...',
+    '.BB.BBB.BB.',
+    'BBBB.B.BBBB',
+    'BBB.sss.BBB',
+    '.B.BsBsB.B.',
+    'BBB.sss.BBB',
+    'BBBB.B.BBBB',
+    '.BB.BBB.BB.',
+    '...BBBBB...',
+    '....BBB....',
+    '.....W.....',
+    '.WWW.W.WWW.',
+    '...WWWWW...',
+    '.....W.....',
+  ],
+};
+
+/** 14×14 palm tree for the heads side of the coin in BEACH: fronds, coconuts, curved trunk, sand. */
+export const COIN_PALM: Sprite = {
+  id: 'palm',
+  w: 14,
+  h: 14,
+  wingOpacity: 1,
+  paint: { F: '#4FC86E', f: '#2E8C50', T: '#C48C50', C: '#7A4E28' },
+  rows: [
+    '...ff.....FF..',
+    '.fFFFF..FFFFF.',
+    'fF...FFFFF..FF',
+    'F...FFFCFFF...',
+    '...FF.CTCF.F..',
+    '..F...FT..F...',
+    '......T.......',
+    '......TT......',
+    '.......T......',
+    '.......T......',
+    '.......TT.....',
+    '........T.....',
+    '.....BBBBBB...',
+    '..BBBBBBBBBBB.',
   ],
 };

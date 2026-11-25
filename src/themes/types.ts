@@ -71,6 +71,8 @@ export interface Theme {
   palette: ThemePalette;
   words: ThemeWords;
   sprite: Sprite;
+  /** Second mascot: the heads side of the coin (tails is `sprite`) */
+  coinHeads: Sprite;
   /** Faint pattern drawn behind everything */
   backdrop: Backdrop;
   /**

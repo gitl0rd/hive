@@ -9,7 +9,16 @@ import {
   themeLogLine,
   THEMES,
 } from '..';
-import { BEE, BRAIN, GULL, pixelFill, spriteRuns } from '../sprites';
+import {
+  BEE,
+  BRAIN,
+  COIN_FLOWER,
+  COIN_HEAD,
+  COIN_PALM,
+  GULL,
+  pixelFill,
+  spriteRuns,
+} from '../sprites';
 import { blend, hexToRgb } from '../tokens';
 
 const at = new Date(2026, 10, 10, 12, 16);
@@ -32,6 +41,12 @@ describe('theme directory', () => {
         if (typeof v === 'string') expect(`${k}:${v}`).not.toBe(`${k}:`);
       }
     }
+  });
+
+  it('each theme has a second mascot on the coin: flower, head, palm', () => {
+    expect(getTheme('hive').coinHeads).toBe(COIN_FLOWER);
+    expect(getTheme('brain').coinHeads).toBe(COIN_HEAD);
+    expect(getTheme('beach').coinHeads).toBe(COIN_PALM);
   });
 
   it('caches tokens per theme', () => {
@@ -131,15 +146,18 @@ describe('themeLogLine', () => {
 });
 
 describe('sprites', () => {
-  it.each([BEE, BRAIN, GULL])('$id rows match its size', (s) => {
+  it.each([BEE, BRAIN, GULL, COIN_HEAD, COIN_FLOWER, COIN_PALM])('$id rows match its size', (s) => {
     expect(s.rows).toHaveLength(s.h);
     for (const r of s.rows) expect(r).toHaveLength(s.w);
   });
 
-  it.each([BEE, BRAIN, GULL])('$id uses only known pixel kinds', (s) => {
-    const known = new Set(['.', 'B', 'W', 's', ...Object.keys(s.paint ?? {})]);
-    for (const ch of s.rows.join('')) expect(known).toContain(ch);
-  });
+  it.each([BEE, BRAIN, GULL, COIN_HEAD, COIN_FLOWER, COIN_PALM])(
+    '$id uses only known pixel kinds',
+    (s) => {
+      const known = new Set(['.', 'B', 'W', 's', ...Object.keys(s.paint ?? {})]);
+      for (const ch of s.rows.join('')) expect(known).toContain(ch);
+    },
+  );
 
   it('paints theme inks and sprite colours', () => {
     const ink = { B: '#111111', W: '#222222', s: '#333333' };

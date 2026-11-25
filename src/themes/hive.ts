@@ -1,7 +1,7 @@
 // The default theme: the K terminal design (docs/PLAN.md §7). Amber screen, pixel bee.
 
 import { HIVE_COLOR } from '../domain/types';
-import { BEE } from './sprites';
+import { BEE, COIN_FLOWER } from './sprites';
 import type { Theme } from './types';
 
 export const hive: Theme = {
@@ -40,6 +40,7 @@ export const hive: Theme = {
     },
   },
   sprite: BEE,
+  coinHeads: COIN_FLOWER,
   backdrop: 'none',
   logRewrites: [],
   icon: {

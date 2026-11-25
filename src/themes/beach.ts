@@ -1,7 +1,7 @@
 // BEACH: same K layout; warm sand screen on a deep night-sea, a pixel seagull instead of the bee,
 // seafoam wings and trail, and pixel wave crests rolling across a faint dot-matrix behind everything.
 
-import { GULL } from './sprites';
+import { GULL, COIN_PALM } from './sprites';
 import type { Theme } from './types';
 
 /** Seafoam. Hive-only tasks use it so they stay distinct from the sand screen. */
@@ -43,6 +43,7 @@ export const beach: Theme = {
     },
   },
   sprite: GULL,
+  coinHeads: COIN_PALM,
   backdrop: 'waves',
   logRewrites: [
     [/^HIVE\.EXE v2\.0$/, 'BEACH.HIVE v2.0'],
