@@ -10,7 +10,7 @@ describe('Crt', () => {
     expect(screen.getByTestId('crt-bezel')).toBeTruthy();
   });
 
-  it('can leave the bezel out (phone home-screen app: the phone edge is the bezel)', async () => {
+  it('can leave the bezel out (phone web build: the phone edge is the bezel)', async () => {
     await render(<Crt size={sizes.mobile} bezel={false} />);
     expect(screen.getByTestId('crt-overlay')).toBeTruthy();
     expect(screen.queryByTestId('crt-bezel')).toBeNull();

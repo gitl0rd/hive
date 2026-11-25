@@ -7,7 +7,7 @@ import { forgetToken, loadToken, saveToken } from '../store/token';
 import { syncFailureReason } from '../store/useHive';
 import { validateToken } from '../todoist/api';
 import { Crt, CrtBackdrop } from './Crt';
-import { isInstalledPhoneWebApp } from './installedPhone';
+import { isPhoneWeb } from './phoneWeb';
 import { Screen } from './Screen';
 import { applyAppIcon } from './appIcon';
 import { layout, sizes } from './theme';
@@ -118,11 +118,8 @@ function Themed({ desktop, children }: { desktop: boolean; children: ReactNode }
     <View style={[styles.root, { backgroundColor: t.bg }]}>
       <CrtBackdrop desktop={desktop} />
       {children}
-      {/* On a phone home-screen web app the phone's own screen edge is the bezel. */}
-      <Crt
-        size={desktop ? sizes.desktop : sizes.mobile}
-        bezel={desktop || !isInstalledPhoneWebApp()}
-      />
+      {/* On a phone's web build the phone's own screen edge is the bezel. */}
+      <Crt size={desktop ? sizes.desktop : sizes.mobile} bezel={desktop || !isPhoneWeb()} />
     </View>
   );
 }
