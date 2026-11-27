@@ -10,6 +10,7 @@ import { Crt, CrtBackdrop } from './Crt';
 import { isInstalledPhoneWebApp } from './installedPhone';
 import { Screen } from './Screen';
 import { applyAppIcon } from './appIcon';
+import { fixStandaloneHeight } from './viewportFix';
 import { layout, sizes } from './theme';
 import { ThemeProvider, useTheme } from './ThemeContext';
 import { type ConnectResult, TokenSetup } from './TokenSetup';
@@ -37,6 +38,9 @@ export function AppRoot() {
       setView(s.mode === 'demo' || (s.mode === 'todoist' && t) ? 'board' : 'setup');
     })();
   }, []);
+
+  // iOS home-screen app: fill the whole screen (no bare band under the footer).
+  useEffect(() => fixStandaloneHeight(), []);
 
   // The app icon follows the theme (web favicon now; Android launcher icon in a native build).
   useEffect(() => {
