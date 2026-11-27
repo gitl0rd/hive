@@ -1,6 +1,6 @@
 import { G, Rect } from 'react-native-svg';
 
-import { type Sprite, spriteRuns } from '../themes/sprites';
+import { pixelFill, type Sprite, spriteRuns } from '../themes/sprites';
 import { useTheme } from './ThemeContext';
 
 interface Props {
@@ -24,7 +24,7 @@ export function PixelBee({ x, y, px, flip = false, color }: Props) {
   const transform = flip
     ? `translate(${x + w / 2} ${y - h / 2}) scale(${-px} ${px})`
     : `translate(${x - w / 2} ${y - h / 2}) scale(${px})`;
-  const fill = { B: body, W: t.wing, s: t.bg } as const;
+  const ink = { B: body, W: t.wing, s: t.bg };
   const runs = spriteRuns(sprite);
   return (
     <G transform={transform} testID="pixel-bee">
@@ -48,7 +48,7 @@ export function PixelBee({ x, y, px, flip = false, color }: Props) {
           y={r.y}
           width={r.w}
           height={1}
-          fill={fill[r.kind]}
+          fill={pixelFill(sprite, r.kind, ink)}
           opacity={r.kind === 'W' ? sprite.wingOpacity : undefined}
         />
       ))}

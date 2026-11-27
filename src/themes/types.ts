@@ -1,13 +1,13 @@
-// What a theme is. Each theme is one file in this folder (hive.ts, brain.ts); index.ts lists them.
+// What a theme is. Each theme is one file in this folder (hive.ts, brain.ts, beach.ts); index.ts lists them.
 // Themes are pure data: colours, wording, sprite and icon names. The UI reads them through
 // ThemeProvider / useTheme (src/ui/ThemeContext.tsx).
 
 import type { Sprite } from './sprites';
 
-export type ThemeId = 'hive' | 'brain';
+export type ThemeId = 'hive' | 'brain' | 'beach';
 
 /** Faint pattern behind everything (src/ui/Backdrops.tsx) */
-export type Backdrop = 'none' | 'gyri';
+export type Backdrop = 'none' | 'gyri' | 'waves' | 'honeycomb';
 
 export interface ThemePalette {
   /** Background */
@@ -27,7 +27,7 @@ export interface ThemePalette {
  * OPEN/DONE/REMOVE/AGAIN, token setup copy) is the same in every theme.
  */
 export interface ThemeWords {
-  /** Header + footer brand, e.g. HIVE·OS */
+  /** Header + footer brand, e.g. BEE·HIVE */
   brand: string;
   /** Comb window title */
   comb: string;
@@ -71,6 +71,8 @@ export interface Theme {
   palette: ThemePalette;
   words: ThemeWords;
   sprite: Sprite;
+  /** Second mascot: the heads side of the coin (tails is `sprite`) */
+  coinHeads: Sprite;
   /** Faint pattern drawn behind everything */
   backdrop: Backdrop;
   /**

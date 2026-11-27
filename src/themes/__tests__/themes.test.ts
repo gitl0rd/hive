@@ -9,14 +9,24 @@ import {
   themeLogLine,
   THEMES,
 } from '..';
-import { BEE, BRAIN, spriteRuns } from '../sprites';
+import {
+  BEE,
+  BRAIN,
+  COIN_FLOWER,
+  COIN_HEAD,
+  COIN_PALM,
+  GULL,
+  pixelFill,
+  spriteRuns,
+} from '../sprites';
 import { blend, hexToRgb } from '../tokens';
 
 const at = new Date(2026, 10, 10, 12, 16);
 
 describe('theme directory', () => {
-  it('lists hive (default) and brain', () => {
-    expect(THEMES.map((t) => t.id)).toEqual(['hive', 'brain']);
+  it('lists hive (default), brain and beach', () => {
+    expect(THEMES.map((t) => t.id)).toEqual(['hive', 'brain', 'beach']);
+    expect(isThemeId('beach')).toBe(true);
     expect(DEFAULT_THEME_ID).toBe('hive');
     expect(isThemeId('brain')).toBe(true);
     expect(isThemeId('nope')).toBe(false);
@@ -33,6 +43,12 @@ describe('theme directory', () => {
     }
   });
 
+  it('each theme has a second mascot on the coin: flower, head, palm', () => {
+    expect(getTheme('hive').coinHeads).toBe(COIN_FLOWER);
+    expect(getTheme('brain').coinHeads).toBe(COIN_HEAD);
+    expect(getTheme('beach').coinHeads).toBe(COIN_PALM);
+  });
+
   it('caches tokens per theme', () => {
     expect(getThemeTokens('brain')).toBe(getThemeTokens('brain'));
     expect(getThemeTokens('brain')).not.toBe(getThemeTokens('hive'));
@@ -47,6 +63,17 @@ describe('theme directory', () => {
     expect(t.theme.words.brand).toBe('BRAIN·HIVE');
     expect(t.theme.words.spin).toBe('▶ THINK');
     expect(t.theme.sprite).toBe(BRAIN);
+  });
+
+  it('beach: sand on night-sea, seafoam gull', () => {
+    const t = getThemeTokens('beach');
+    expect(t.bg).toBe('#02121A');
+    expect(t.screen).toBe('#FFD48A');
+    expect(t.hive).toBe('#5FE6CF');
+    expect(t.theme.words.brand).toBe('BEACH·HIVE');
+    expect(t.theme.words.spin).toBe('▶ SOAR');
+    expect(t.theme.sprite).toBe(GULL);
+    expect(t.theme.backdrop).toBe('waves');
   });
 });
 
@@ -93,6 +120,20 @@ describe('themeLogLine', () => {
     );
   });
 
+  it('rewrites the bee words for beach', () => {
+    const beach = getTheme('beach');
+    expect(themeLogLine(log.boot(), beach)).toBe('BEACH.HIVE v2.0');
+    expect(themeLogLine(log.dispatch(at), beach)).toBe('12:16 > launch gull');
+    expect(themeLogLine(log.hop(3, 'Gym'), beach)).toBe('      glide 03  gym');
+    expect(themeLogLine(log.landed(at, 'Swim', 'Life'), beach)).toBe('12:16 > LANDED: SWIM [LIFE]');
+    expect(themeLogLine(log.overdue(at, 2), beach)).toBe('12:16 > 2 shells overdue');
+    expect(themeLogLine(log.overdue(at, 1), beach)).toBe('12:16 > 1 shell overdue');
+    expect(themeLogLine(log.nothingToSpin(at), beach)).toBe('12:16 > no shells on shore');
+    expect(themeLogLine(log.shuffled(at), beach)).toBe('12:16 > rake sand ... ok');
+    expect(themeLogLine(log.reset(at, true), beach)).toBe('12:16 > recall gull ... flight aborted');
+    expect(themeLogLine(log.reset(at, false), beach)).toBe('12:16 > reset shore ... gull home');
+  });
+
   it("never rewrites a task's own title", () => {
     expect(themeLogLine(log.hop(1, 'dispatch bee hop LANDED'), brain)).toBe(
       '      spark 01  dispatch bee hop landed',
@@ -105,9 +146,24 @@ describe('themeLogLine', () => {
 });
 
 describe('sprites', () => {
-  it.each([BEE, BRAIN])('$id rows match its size', (s) => {
+  it.each([BEE, BRAIN, GULL, COIN_HEAD, COIN_FLOWER, COIN_PALM])('$id rows match its size', (s) => {
     expect(s.rows).toHaveLength(s.h);
     for (const r of s.rows) expect(r).toHaveLength(s.w);
+  });
+
+  it.each([BEE, BRAIN, GULL, COIN_HEAD, COIN_FLOWER, COIN_PALM])(
+    '$id uses only known pixel kinds',
+    (s) => {
+      const known = new Set(['.', 'B', 'W', 's', ...Object.keys(s.paint ?? {})]);
+      for (const ch of s.rows.join('')) expect(known).toContain(ch);
+    },
+  );
+
+  it('paints theme inks and sprite colours', () => {
+    const ink = { B: '#111111', W: '#222222', s: '#333333' };
+    expect(pixelFill(GULL, 'W', ink)).toBe('#222222');
+    expect(pixelFill(GULL, 'Y', ink)).toBe('#FFC43C');
+    expect(pixelFill(BEE, 'B', ink)).toBe('#111111');
   });
 
   it('merges runs', () => {

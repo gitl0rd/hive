@@ -6,7 +6,7 @@ import { type CoinSide, tally } from '../domain/coin';
 import { pad2 } from '../domain/labels';
 import { COIN_LABEL_MAX } from '../store/coinLabels';
 import type { ThemeTokens } from '../themes';
-import { COIN_HEAD, type Sprite, spriteRuns } from '../themes/sprites';
+import { pixelFill, type Sprite, spriteRuns } from '../themes/sprites';
 import { TermButton } from './Button';
 import { fonts } from './theme';
 import { useTheme, useThemedStyles } from './ThemeContext';
@@ -22,7 +22,7 @@ export function sideText(side: CoinSide, label: string): string {
 
 /**
  * COIN: a pixel coin that flips end over end and lands heads or tails. Each side can stand for
- * something (typed below); blank shows the default icon (a head / the theme's sprite).
+ * something (typed below); blank shows the theme's icons (its second mascot / its sprite).
  */
 export function CoinPanel({
   coin,
@@ -179,7 +179,7 @@ export function CoinPanel({
 function CoinFace({ side, label, size }: { side: CoinSide; label: string; size: number }) {
   const th = useTheme();
   const text = label.trim().toUpperCase();
-  const sprite: Sprite = side === 'heads' ? COIN_HEAD : th.theme.sprite;
+  const sprite: Sprite = side === 'heads' ? th.theme.coinHeads : th.theme.sprite;
   const k = size / 100;
   const labelSize = (text.length <= 6 ? 22 : text.length <= 14 ? 16 : 12) * k;
 
@@ -204,7 +204,8 @@ function CoinFace({ side, label, size }: { side: CoinSide; label: string; size: 
             sprite={sprite}
             cx={50}
             cy={side === 'heads' ? 44 : 46}
-            span={side === 'heads' ? 34 : 44}
+            // heads: same pixel size for every theme's mascot (the 11-wide head spans 34)
+            span={side === 'heads' ? (sprite.w * 34) / 11 : 44}
           />
         )}
       </Svg>
@@ -257,7 +258,7 @@ function SpriteAt({
 }) {
   const th = useTheme();
   const px = span / sprite.w;
-  const fill = { B: th.screen, W: th.wing, s: th.bg } as const;
+  const ink = { B: th.screen, W: th.wing, s: th.bg };
   return (
     <G
       transform={`translate(${cx - (sprite.w * px) / 2} ${cy - (sprite.h * px) / 2}) scale(${px})`}
@@ -269,7 +270,7 @@ function SpriteAt({
           y={r.y}
           width={r.w}
           height={1}
-          fill={fill[r.kind]}
+          fill={pixelFill(sprite, r.kind, ink)}
           opacity={r.kind === 'W' ? sprite.wingOpacity : undefined}
         />
       ))}

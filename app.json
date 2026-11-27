@@ -47,6 +47,14 @@
               "foregroundImage": "./assets/themes/brain/android-icon-foreground.png",
               "backgroundColor": "#0E0509"
             }
+          },
+          {
+            "name": "Beach",
+            "ios": "./assets/themes/beach/icon.png",
+            "android": {
+              "foregroundImage": "./assets/themes/beach/android-icon-foreground.png",
+              "backgroundColor": "#02121A"
+            }
           }
         ]
       ]

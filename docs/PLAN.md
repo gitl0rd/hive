@@ -228,30 +228,30 @@ Cells: hex ring 1.5px in `dim`; inner fill bg; label VT323 uppercase (21px mobil
 Pixel bee: 11×7 grid (scale 3–4px), crisp edges: two wing blocks (55% opacity), 8×5 body with two bg-colour stripes, 2×3 head with a bg eye pixel, 1px stinger. Flip horizontally when flying left. Counter-scale so it stays the same size when the board shrinks.
 
 ### Mobile layout (390×844 reference)
-Top → bottom: bracket tabs `SPIN · TODAY · LOG` (active tab boxed, line underneath) · stats `FLWR 07  LATE 03` · comb (fills ~330px tall) · FLIGHT.LOG box (~206px, title on the frame; on landing the winner's name shows big at its top) · `▶ SPIN` bar (or the 3 action buttons) · footer `HIVE·OS | meter | DONE 02`.
+Top → bottom: bracket tabs `SPIN · TODAY · LOG` (active tab boxed, line underneath) · stats `FLWR 07  LATE 03` · comb (fills ~330px tall) · FLIGHT.LOG box (~206px, title on the frame; on landing the winner's name shows big at its top) · `▶ SPIN` bar (or the 3 action buttons) · footer `BEE·HIVE | meter | DONE 02`.
 TODAY and LOG tabs replace the comb/log area.
 
 ### Desktop layout (≥ 900px)
-Header: `HIVE·OS // DAILY SPIN` left, `FLWR · LATE · DONE` right, rule under it.
+Header: `BEE·HIVE // DAILY SPIN` left, `FLWR · LATE · DONE` right, rule under it.
 Left: big `COMB.SYS` window (status on frame: ● READY / ◌ IN FLIGHT / ■ LANDED), comb centred, SPIN bar / action row under it.
 Right column: list window with frame tabs `TODAY · NN | HISTORY`, then `FLIGHT.LOG` window (~290px).
-Footer: `HIVE·OS v2 | meter | DONE NN`. Below ~1000px the right column wraps under the comb.
+Footer: `BEE·HIVE v2 | meter | DONE NN`. Below ~1000px the right column wraps under the comb.
 
 ### Token setup (first run)
-Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A small pixel-art settings cog in the footer (next to `HIVE·OS`; replaced the original `CFG` text at the owner's request) lets you replace or forget the token and toggle haptics.
+Same terminal look. `> TODOIST TOKEN:` input, `[ CONNECT ]`, a line explaining where to find the token (Todoist → Settings → Integrations → Developer), and `[ DEMO MODE ]` to run on sample data. Validate the token with one `GET /projects?limit=1`. A small pixel-art settings cog in the footer (next to `BEE·HIVE`; replaced the original `CFG` text at the owner's request) lets you replace or forget the token and toggle haptics.
 
-Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. Settings (cog in the footer, next to `HIVE·OS`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: settings cog > REPLACE TOKEN`.
+Demo mode stores its data under a separate `hive.demo.*` namespace and seeds four sample Hive tasks on first use, so trying the demo never mixes sample tasks into real data. Settings (cog in the footer, next to `BEE·HIVE`): Replace token / Forget token (confirm) in Todoist mode, Connect Todoist in Demo mode, Haptics toggle. A sync rejected with 401/403 logs `FAILED (bad token)` plus `fix: settings cog > REPLACE TOKEN`.
 
 ## 7b. Themes (post-v1)
 
 Owner request: switchable themes from the settings cog (CFG.SYS → THEME), with all theme wording in one place.
 
-- `src/themes/` is the theme directory: one file per theme (`hive.ts` = K, the default; `brain.ts` = BRAIN HIVE from the canvas row "Experiment · BRAIN HIVE"), plus `types.ts` (what a theme holds), `sprites.ts` (pixel bee / winged brain), `tokens.ts` (derived colours), `log.ts`, `index.ts` (registry). Pure, unit-tested. Add a theme: new file + entry in `THEMES` and `ThemeId`.
-- A theme holds: palette (bg, screen, Hive-task colour, trail, wing), every themed word (brand, window titles, phase tags, SPIN/THINK, empty states, screen-reader names), sprite, backdrop pattern (`gyri` = brain folds lit on a faint LED dot-matrix), flight-log rewrites, icon names.
+- `src/themes/` is the theme directory: one file per theme (`hive.ts` = K, the default; `brain.ts` = BRAIN HIVE from the canvas row "Experiment · BRAIN HIVE"; `beach.ts` = BEACH, sand screen on night-sea with a pixel seagull), plus `types.ts` (what a theme holds), `sprites.ts` (pixel bee / winged brain / seagull), `tokens.ts` (derived colours), `log.ts`, `index.ts` (registry). Pure, unit-tested. Add a theme: new file + entry in `THEMES` and `ThemeId`.
+- A theme holds: palette (bg, screen, Hive-task colour, trail, wing), every themed word (brand, window titles, phase tags, SPIN/THINK, empty states, screen-reader names), sprite, backdrop pattern (`gyri` = brain folds lit on a faint LED dot-matrix; `waves` = wave crests on the same dot-matrix; `honeycomb` = hexagon outlines on it, used by the default bee theme), flight-log rewrites, icon names.
 - UI reads it via `ThemeProvider` / `useTheme` / `useThemedStyles` (`src/ui/ThemeContext.tsx`). `src/ui/theme.ts` keeps only what themes share (fonts, layout, sizes).
 - Stored data stays theme-free: the flight log is stored in hive words and rewritten for display, Hive tasks are stored with the hive colour and shown in the theme's Hive colour. Switching theme relabels everything, including today's log.
 - BRAIN HIVE: screen `#FF8FB8` on `#0E0509`; Hive-only tasks, wings and trail in synapse cyan `#7FE3FF` (stays distinct from magenta projects); `BRAIN·HIVE`, `CORTEX.SYS`, `SYNAPSE.LOG`, `● AWAKE / ◌ FIRING / ■ FOCUSED`, `▶ THINK`, log `fire synapse` / `spark NN` / `FOCUS:`.
-- Icon follows the theme. Web: favicon, apple-touch-icon, theme-color swap at runtime (an installed PWA keeps its install-time icon). Android/iOS: `expo-alternate-app-icons` (activity-alias `MainActivityBrain`); needs a new EAS build. Icons come from `scripts/make-icons.py` (one set per theme).
+- Icon follows the theme. Web: favicon, apple-touch-icon, theme-color swap at runtime (an installed PWA keeps its install-time icon). Android/iOS: `expo-alternate-app-icons` (activity-aliases `MainActivityBrain`, `MainActivityBeach`); needs a new EAS build. Icons come from `scripts/make-icons.py` (one set per theme).
 
 ## 8. Milestones (each ends runnable and committed)
 
@@ -279,7 +279,7 @@ Owner request: a coin flip with a Google-style toss animation; each side can sta
 
 - Mobile: a 4th bracket tab `FLIP`. Desktop: a `FLIP` tab on the right-hand list window (the flight log shrinks while it's open so the coin has room).
 - `src/domain/coin.ts` (pure, tested): `planFlip(rng, from)` = fair 50/50 side + 5–6 full turns with the half-turn parity that lands on it, 1700ms; `coinPose(plan, t)` = angle (ease-out), lift (parabola), visible face (swaps each time the coin passes edge-on), squash = |cos|. The UI (`src/ui/useCoin.ts`, `CoinFlip.tsx`) plays it with `requestAnimationFrame`: face squashed vertically, a rim disc offset behind it, the coin rising/growing, a table shadow shrinking.
-- Faces: blank label → heads = pixel profile head, tails = the theme's sprite (bee / winged brain); a typed label replaces the icon. Labels persist under `hive.coin` (device only, never Todoist). Tap the coin or `▶ FLIP`. Result line in inverse video + this session's tally (`H 03 · T 02` and the last 12).
+- Faces: blank label → heads = the theme's second mascot (flower / profile head / palm tree), tails = the theme's sprite (bee / winged brain / seagull); a typed label replaces the icon. Labels persist under `hive.coin` (device only, never Todoist). Tap the coin or `▶ FLIP`. Result line in inverse video + this session's tally (`H 03 · T 02` and the last 12).
 - Reduced motion lands instantly; haptic `Medium` on landing (native).
 
 ## 11. Collapsible flight log (post-v1)

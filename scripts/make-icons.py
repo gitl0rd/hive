@@ -3,7 +3,8 @@
 Run: python3 scripts/make-icons.py   (needs Pillow)
 
 One set per theme (src/themes): HIVE (amber, pixel bee) is the default app icon; BRAIN HIVE (pink,
-winged brain) is an alternate icon the app switches to when that theme is picked.
+winged brain) and BEACH (sand,
+pixel gull) are alternate icons the app switches to when that theme is picked.
 
 Variants (each platform shapes icons differently):
 - squircle  macOS-style rounded tile on a transparent 1024 canvas (Apple's 824px grid) with a soft
@@ -43,6 +44,19 @@ BRAIN = [
     "...BBBBBBB...",
     "......B......",
 ]
+GULL = [
+    ".........GG.......",
+    ".......GGGG.......",
+    ".....GGGGGG.......",
+    "...KGGGG.GGG..HH..",
+    ".KKKGG....GG.HHsH.",
+    "KKK.......GGHHHHYY",
+    ".........GGHHHHH..",
+    "HHHHHHHHHHHHHHH...",
+    ".HHHHHHHHHHHH.....",
+]
+# Fixed-colour pixels (same as `paint` in src/themes/sprites.ts)
+GULL_PAINT = {'H': (246, 244, 236), 'G': (190, 205, 212), 'K': (90, 107, 116), 'Y': (255, 196, 60)}
 
 THEMES = {
     # screen colour, bg, tile gradient top -> bottom, sprite, wing colour + opacity, sprite px
@@ -50,6 +64,8 @@ THEMES = {
                  sprite=BEE, wing=None, wing_a=140, px=32),
     'brain': dict(screen=(255, 143, 184), bg=(14, 5, 9), top=(40, 12, 26), bottom=(10, 3, 7),
                   sprite=BRAIN, wing=(127, 227, 255), wing_a=190, px=30),
+    'beach': dict(screen=(255, 212, 138), bg=(2, 18, 26), top=(6, 44, 60), bottom=(2, 12, 18),
+                  sprite=GULL, wing=(95, 230, 207), wing_a=180, px=24, paint=GULL_PAINT),
 }
 T = THEMES['hive']
 
@@ -72,6 +88,8 @@ def draw_bee(d, cx, cy, px, color, bg, mono=False):
             # bg=None leaves the stripe/eye pixels transparent (monochrome icons)
             stripe = rgba(bg) if bg is not None else None
             col = {'W': rgba(wing, T['wing_a']), 'B': rgba(color), 's': stripe}.get(ch)
+            if ch in T.get('paint', {}):
+                col = rgba(color if mono else T['paint'][ch])
             if col is not None:
                 d.rectangle([ox + x * px, oy + y * px, ox + (x + 1) * px - 1, oy + (y + 1) * px - 1], fill=col)
 

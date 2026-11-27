@@ -2,7 +2,7 @@
 // "Experiment · BRAIN HIVE"). Same K layout; pink screen on near-black plum, a winged brain
 // instead of the bee, synapse-cyan wings and trail, brain folds lit up on a faint LED dot-matrix behind everything.
 
-import { BRAIN } from './sprites';
+import { BRAIN, COIN_HEAD } from './sprites';
 import type { Theme } from './types';
 
 /** Synapse cyan. Hive-only tasks use it so they stay distinct from pink projects (magenta). */
@@ -44,6 +44,7 @@ export const brain: Theme = {
     },
   },
   sprite: BRAIN,
+  coinHeads: COIN_HEAD,
   backdrop: 'gyri',
   logRewrites: [
     [/^HIVE\.EXE v2\.0$/, 'BRAIN.HIVE v2.0'],
